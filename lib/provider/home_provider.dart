@@ -46,6 +46,8 @@ class HomeProvider with ChangeNotifier {
   void updateMap(LocationData newLocalData, BuildContext context) async {
     LatLng latlng = LatLng(newLocalData.latitude, newLocalData.longitude);
 
+    print(latlng.toString());
+
     marker = Marker(
         markerId: MarkerId("home"),
         position: latlng,

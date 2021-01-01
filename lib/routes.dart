@@ -1,4 +1,5 @@
 import 'package:fitness_app/screens/HomePage/home_page.dart';
+import 'package:fitness_app/screens/ProfilePage/edit_profile_page.dart';
 import 'package:fitness_app/screens/intro_page.dart';
 import 'package:fitness_app/screens/Login/login_page.dart';
 import 'package:fitness_app/screens/main_page.dart';
@@ -25,6 +26,7 @@ var routes = {
   //CREATE POST
   'main_screen': (context) => MainPage(),
   // PROFILE
-  'profile_screen': (context) => ProfilePage(),
+  //'profile_screen': (context) => ProfilePage(),
+  'edit_profile_screen': (context) => EditProfile(),
   'target_screen': (context) => TargetPage(),
 };

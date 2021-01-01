@@ -37,6 +37,7 @@ dependencies:
   provider: ^4.0.4
   image_picker: ^0.6.6+4
   google_maps_flutter: ^0.5.25+2
+  geoflutterfire: ^2.0.0
   http: ^0.12.0+4
   location: ^3.0.0
   pedometer: ^1.0.0
@@ -51,6 +52,9 @@ dependencies:
   google_sign_in: ^4.5.1
   shared_preferences: ^0.5.12+4
   sliding_up_panel: ^0.3.6
+  mapbox_search: ^1.0.7
+  mapbox_gl: ^0.9.0
+  get: ^3.24.0
 
 dev_dependencies:
   flutter_test:

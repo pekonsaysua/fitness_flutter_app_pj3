@@ -1,7 +1,8 @@
-
-
 import 'package:fitness_app/helpers/colors_constant.dart';
 import 'package:fitness_app/helpers/shared_preferrence.dart';
+import 'package:fitness_app/models/post.dart';
+import 'package:fitness_app/screens/FeedPage/following_page.dart';
+import 'package:fitness_app/widgets/Post/post_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -10,9 +11,8 @@ class FeedPage extends StatefulWidget {
   _FeedPageState createState() => _FeedPageState();
 }
 
-class _FeedPageState extends State<FeedPage> with TickerProviderStateMixin{
+class _FeedPageState extends State<FeedPage> with TickerProviderStateMixin, AutomaticKeepAliveClientMixin{
   TabController _tabController;
-
 
   @override
   void initState() {
@@ -64,15 +64,17 @@ class _FeedPageState extends State<FeedPage> with TickerProviderStateMixin{
             unselectedLabelColor: kColorGrey,
             labelColor: kColorWhite,
             tabs: [
-              Tab(text: "ĐANG THEO DÕI",),
-              Tab(text: "BẠN",),
+              Tab(
+                text: "ĐANG THEO DÕI",
+              ),
+              Tab(
+                text: "BẠN",
+              ),
             ],
           ),
         ),
         body: new TabBarView(controller: _tabController, children: [
-          Scaffold(
-            backgroundColor: kColorWhite,
-          ),
+          FollowingPage(),
           Scaffold(
             backgroundColor: kColorWhite,
           ),
@@ -80,4 +82,8 @@ class _FeedPageState extends State<FeedPage> with TickerProviderStateMixin{
       ),
     );
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }

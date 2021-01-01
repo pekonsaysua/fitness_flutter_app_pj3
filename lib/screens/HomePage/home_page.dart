@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fitness_app/helpers/colors_constant.dart';
+import 'package:fitness_app/helpers/shared_preferrence.dart';
+import 'package:fitness_app/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fitness_app/config/initialization.dart';
@@ -17,8 +20,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,6 +78,18 @@ class _RunControlState extends State<RunControl> {
     } else {
       _panelController.close();
     }
+  }
+
+  UserData userData;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    StorageUtil.getUserInfo().then((value) => setState(() {
+          userData = value;
+        }));
   }
 
   @override
@@ -160,10 +173,8 @@ class _RunControlState extends State<RunControl> {
                                     isStopping = false;
                                   });
                                   if (isStarting == true) {
-                                    home.height =
-                                        double.parse(user.userData.height);
-                                    home.weight =
-                                        double.parse(user.userData.weight);
+                                    home.height = double.parse(userData.height);
+                                    home.weight = double.parse(userData.weight);
                                     time.startStopwatch();
                                     home.dispose();
                                     home.getCurrentLocation(
@@ -196,12 +207,16 @@ class _RunControlState extends State<RunControl> {
                                 });
                                 time.pauseStopwatch();
                                 user.setDataCount(
-                                    user.userData.id,
+                                    userData.id,
                                     home.stepCount,
                                     home.distance,
                                     home.caloriesBurned,
                                     time.timeDisplay,
-                                    DateTime.now().toString());
+                                    DateTime.now().toString(),
+                                    home.latlngs);
+
+                                //createPost(userData.id, "activity", "");
+
                                 time.resetStopwatch();
                                 home.stopListeningStep();
                                 home.resetStep();
@@ -225,5 +240,18 @@ class _RunControlState extends State<RunControl> {
         ),
       ),
     );
+  }
+
+  Future createPost(String idUser, String type, String description) async {
+    DocumentReference docRef =
+        await Firestore.instance.collection('posts').add({
+      'uid': idUser,
+      'type': type,
+      'description': description,
+    });
+    Firestore.instance
+        .collection('posts')
+        .document(docRef.documentID)
+        .updateData({'id': docRef.documentID});
   }
 }

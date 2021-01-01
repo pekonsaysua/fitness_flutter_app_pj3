@@ -20,9 +20,10 @@ class UserData {
   String urlAvt;
   String urlCover;
 
-  UserData(this.id, this.name, this.email, this.phone, this.pass,
-      this.weight, this.height, this.urlAvt, this.urlCover);
+  UserData(this.id, this.name, this.email, this.phone, this.pass, this.weight,
+      this.height, this.urlAvt, this.urlCover);
 
+  UserData.compact(this.id, this.name, this.urlAvt);
 
   UserData.formSnapShot(DocumentSnapshot snapshot) {
     Map data = snapshot.data;
@@ -36,15 +37,8 @@ class UserData {
     urlCover = data[URL_COVER];
   }
 
-  UserData.fromJson(Map<String, dynamic> json) {
-    id = json[ID];
-    name = json[NAME];
-    email = json[EMAIL];
-    phone = json[PHONE];
-    weight = json[WEIGHT];
-    height = json[HEIGHT];
-    urlAvt = json[URL_AVT];
-    urlCover = json[URL_COVER];
+  factory UserData.fromJson(Map<String, dynamic> json) {
+    return UserData.compact(json[ID], json[NAME], json[URL_AVT]);
   }
 
   Map<String, dynamic> toJson() {
@@ -59,7 +53,4 @@ class UserData {
     data[URL_COVER] = urlCover;
     return data;
   }
-
 }
-
-

@@ -4,6 +4,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fitness_app/helpers/colors_constant.dart';
 import 'package:fitness_app/helpers/shared_preferrence.dart';
 import 'package:fitness_app/models/user.dart';
+import 'package:fitness_app/screens/ProfilePage/profile_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,25 +13,52 @@ import 'package:provider/provider.dart';
 import 'package:fitness_app/provider/user_provider.dart';
 
 class ProfilePage extends StatefulWidget {
+  final UserData userData;
+
+  const ProfilePage({Key key, this.userData}) : super(key: key);
+
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage>
+    with AutomaticKeepAliveClientMixin {
+  UserData myProfile;
   UserData user;
+  bool isFollow;
+
+  bool isLoading = false;
+
+  ProfileController profileController;
+
+  List<String> followerList;
+  List<String> followingList;
 
   @override
   void initState() {
     // TODO: implement initState
-
-    /*WidgetsBinding.instance.addPostFrameCallback((_) async {
-      user = await StorageUtil.getUserInfo();
-    });*/
+    //init();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      setState(() => isLoading = true);
+      await init();
+      setState(() => isLoading = false);
+    });
     super.initState();
+  }
 
-    StorageUtil.getUserInfo().then((value) => setState(() {
-          user = value;
-        }));
+  Future<void> init() async {
+    profileController = new ProfileController();
+    myProfile = await StorageUtil.getUserInfo();
+    user = widget.userData ?? myProfile;
+    if (widget.userData != null) {
+      var tmp = await profileController.checkFollower(
+          myProfile.id, widget.userData.id);
+      setState(() {
+        isFollow = tmp;
+      });
+    }
+    followerList = await profileController.getFollower(user.id);
+    followingList = await profileController.getFollowing(user.id);
   }
 
   @override
@@ -39,14 +67,17 @@ class _ProfilePageState extends State<ProfilePage> {
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
         backgroundColor: kColorOrange,
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: widget.userData != null,
         title: Text("Profile"),
         actions: [
-          IconButton(
-            icon: Icon(Icons.edit),
-            onPressed: () {},
-            tooltip: "Edit Profile",
-          ),
+          if (widget.userData == null)
+            IconButton(
+              icon: Icon(Icons.edit),
+              onPressed: () {
+                Navigator.pushNamed(context, 'edit_profile_screen');
+              },
+              tooltip: "Edit Profile",
+            ),
           IconButton(
             icon: Icon(Icons.settings),
             onPressed: () {},
@@ -59,85 +90,383 @@ class _ProfilePageState extends State<ProfilePage> {
           )
         ],
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
+      body: isLoading
+          ? Container(
               color: kColorWhite,
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            )
+          : SingleChildScrollView(
+              padding: EdgeInsets.all(0),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 30, horizontal: 15),
-                    child: Row(
+                    color: kColorWhite,
+                    child: Column(
                       children: [
-                        CircleAvatar(
-                            radius: 40,
-                            backgroundImage: user.urlAvt != null
-                                ? NetworkImage(user.urlAvt)
-                                : AssetImage("assets/images/avatar.jpg")),
-                        SizedBox(
-                          width: 20,
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 30, horizontal: 15),
+                          child: Row(
+                            children: [
+                              user.urlAvt == null
+                                  ? CircleAvatar(
+                                      radius: 40,
+                                      backgroundImage: AssetImage(
+                                          "assets/images/avatar.jpg"))
+                                  : CircleAvatar(
+                                      radius: 40,
+                                      backgroundImage:
+                                          NetworkImage(user.urlAvt)),
+                              SizedBox(
+                                width: 20,
+                              ),
+                              Text(
+                                user.name,
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 18),
+                              ),
+                            ],
+                          ),
                         ),
-                        Text(
-                          user.name,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 18),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 15, vertical: 15),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  FlatButton(
+                                    padding: EdgeInsets.all(0),
+                                    onPressed: () {},
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Theo doi ban",
+                                          style: TextStyle(color: kColorOrange),
+                                        ),
+                                        Text(followerList.length.toString()),
+                                      ],
+                                    ),
+                                  ),
+                                  VerticalDivider(
+                                    color: kColorBlack,
+                                    width: 5,
+                                    thickness: 5,
+                                  ),
+                                  FlatButton(
+                                    padding: EdgeInsets.all(0),
+                                    onPressed: () {},
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Dang theo doi",
+                                          style: TextStyle(color: kColorOrange),
+                                        ),
+                                        Text(followingList.length.toString()),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              widget.userData == null
+                                  ? FlatButton(
+                                      textColor: kColorOrange,
+                                      onPressed: () {},
+                                      child: Text("Tìm bạn bè"),
+                                      shape: RoundedRectangleBorder(
+                                          side: BorderSide(
+                                              color: kColorOrange, width: 2),
+                                          borderRadius:
+                                              BorderRadius.circular(5)),
+                                    )
+                                  : isFollow
+                                      ? FlatButton(
+                                          textColor: kColorOrange,
+                                          onPressed: () {},
+                                          child: Text("Dang theo doi"),
+                                          shape: RoundedRectangleBorder(
+                                              side: BorderSide(
+                                                  color: kColorOrange,
+                                                  width: 2),
+                                              borderRadius:
+                                                  BorderRadius.circular(5)),
+                                        )
+                                      : FlatButton(
+                                          textColor: kColorWhite,
+                                          onPressed: () async {
+                                            await profileController.setFollow(
+                                                myProfile.id,
+                                                widget.userData.id);
+                                            setState(() {
+                                              isFollow = true;
+                                            });
+                                          },
+                                          child: Text("Theo doi"),
+                                          color: kColorOrange,
+                                          shape: RoundedRectangleBorder(
+                                              side: BorderSide(
+                                                  color: kColorOrange,
+                                                  width: 2),
+                                              borderRadius:
+                                                  BorderRadius.circular(5)),
+                                        )
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    margin: EdgeInsets.only(top: 10),
+                    padding: EdgeInsets.only(left: 15),
+                    color: kColorWhite,
+                    child: ListView(
+                      shrinkWrap: true,
+                      physics: ScrollPhysics(),
                       children: [
-                        Row(
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Theo doi",
-                                  style: TextStyle(color: kColorOrange),
-                                ),
-                                Text("0"),
-                              ],
+                        FlatButton(
+                            padding: EdgeInsets.all(0),
+                            onPressed: () {},
+                            child: ListTile(
+                              leading: Icon(Icons.local_activity_outlined),
+                              title: Text("Hoat dong"),
+                              subtitle: Text("2 gio trc"),
+                              trailing: Icon(Icons.arrow_forward_ios),
+                            )),
+                        FlatButton(
+                            padding: EdgeInsets.all(0),
+                            onPressed: () {},
+                            child: ListTile(
+                              leading: Icon(Icons.table_rows_outlined),
+                              title: Text("Thong ke"),
+                              subtitle: Text("nam nay: 50km"),
+                              trailing: Icon(Icons.arrow_forward_ios),
                             ),
-                            VerticalDivider(thickness: 5,),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Nguoi theo doi",
-                                  style: TextStyle(color: kColorOrange),
+                            shape: Border(
+                                top: BorderSide(color: kColorGrey, width: 0.5),
+                                bottom:
+                                    BorderSide(color: kColorGrey, width: 0.5))),
+                        FlatButton(
+                            padding: EdgeInsets.all(0),
+                            onPressed: () {},
+                            child: ListTile(
+                              leading: Icon(Icons.featured_play_list_outlined),
+                              title: Text("Bai viet"),
+                              subtitle: Text("2"),
+                              trailing: Icon(Icons.arrow_forward_ios),
+                            )),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    color: kColorWhite,
+                    margin: EdgeInsets.only(top: 10),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 15, vertical: 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Thu thach",
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              Text("1"),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          height: 100.0,
+                          padding: EdgeInsets.only(bottom: 20, left: 15),
+                          child: ListView(
+                            shrinkWrap: true,
+                            physics: ScrollPhysics(),
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              FlatButton(
+                                padding: EdgeInsets.all(0),
+                                onPressed: () {},
+                                child: Card(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
+                                  elevation: 1,
+                                  child: Container(
+                                    height: 100,
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.9,
+                                    child: ListTile(
+                                      leading: Icon(Icons.padding),
+                                      title: Text("Thu thach chay thang 12"),
+                                      subtitle: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text("50km"),
+                                          Text("Con 1 ngay"),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                                Text("0"),
-                              ],
-                            ),
-                          ],
+                              ),
+                              FlatButton(
+                                padding: EdgeInsets.all(0),
+                                onPressed: () {},
+                                child: Card(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
+                                  elevation: 1,
+                                  child: Container(
+                                    height: 100,
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.9,
+                                    child: ListTile(
+                                      leading: Icon(Icons.padding),
+                                      title: Text("Thu thach chay thang 12"),
+                                      subtitle: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text("50km"),
+                                          Text("Con 1 ngay"),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         FlatButton(
-                          textColor: kColorOrange,
-                          onPressed: () {},
-                          child: Text("Tìm bạn bè"),
-                          shape: RoundedRectangleBorder(
-                              side: BorderSide(color: kColorOrange, width: 2),
-                              borderRadius: BorderRadius.circular(5)),
-                        )
+                            shape: Border(
+                              top: BorderSide(color: kColorGrey, width: 0.5),
+                            ),
+                            padding: EdgeInsets.all(0),
+                            onPressed: () {},
+                            child: ListTile(
+                              leading: Text("Bai viet"),
+                              trailing: Icon(Icons.arrow_forward_ios),
+                            )),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    color: kColorWhite,
+                    margin: EdgeInsets.only(top: 10),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 15, vertical: 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Cau lac bo",
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              Text("5"),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          height: 100.0,
+                          padding: EdgeInsets.only(bottom: 20, left: 15),
+                          child: ListView(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              FlatButton(
+                                padding: EdgeInsets.all(0),
+                                onPressed: () {},
+                                child: Card(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
+                                  elevation: 1,
+                                  child: Container(
+                                    height: 100,
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.9,
+                                    child: ListTile(
+                                      leading: Icon(Icons.padding),
+                                      title: Text("Thu thach chay thang 12"),
+                                      subtitle: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text("50km"),
+                                          Text("Con 1 ngay"),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              FlatButton(
+                                padding: EdgeInsets.all(0),
+                                onPressed: () {},
+                                child: Card(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
+                                  elevation: 1,
+                                  child: Container(
+                                    height: 100,
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.9,
+                                    child: ListTile(
+                                      leading: Icon(Icons.padding),
+                                      title: Text("Thu thach chay thang 12"),
+                                      subtitle: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text("50km"),
+                                          Text("Con 1 ngay"),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        FlatButton(
+                            shape: Border(
+                              top: BorderSide(color: kColorGrey, width: 0.5),
+                            ),
+                            padding: EdgeInsets.all(0),
+                            onPressed: () {},
+                            child: ListTile(
+                              leading: Text("Bai viet"),
+                              trailing: Icon(Icons.arrow_forward_ios),
+                            )),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-
-          ],
-        ),
-      ),
     );
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }
 
 /*
