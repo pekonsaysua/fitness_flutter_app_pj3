@@ -25,6 +25,8 @@ class UserData {
 
   UserData.compact(this.id, this.name, this.urlAvt);
 
+  UserData.empty();
+
   UserData.formSnapShot(DocumentSnapshot snapshot) {
     Map data = snapshot.data;
     id = data[ID];

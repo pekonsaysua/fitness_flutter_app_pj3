@@ -9,8 +9,6 @@ class CountView extends StatefulWidget {
 }
 
 class _CountViewState extends State<CountView> {
-
-
   @override
   Widget build(BuildContext context) {
     final time = Provider.of<TimerProvider>(context);
@@ -29,9 +27,20 @@ class _CountViewState extends State<CountView> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: ListTile(
-                leading:Icon(Icons.directions_walk, size: 30, color: Colors.white,),
-                title: Text(home.stepCount.toString(), style: TextStyle(color: Colors.white, fontSize: 20),),
-                subtitle: Text("Số bước",style: TextStyle(color: Colors.grey, fontSize: 13,fontWeight: FontWeight.bold)),
+                leading: Icon(
+                  Icons.directions_walk,
+                  size: 30,
+                  color: Colors.black,
+                ),
+                title: Text(
+                  home.stepCount.toString(),
+                  style: TextStyle(color: Colors.black, fontSize: 20),
+                ),
+                subtitle: Text("Số bước",
+                    style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold)),
               ),
             ),
             Padding(
@@ -45,15 +54,28 @@ class _CountViewState extends State<CountView> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: ListTile(
-                  leading:Icon(Icons.timer, size: 30, color: Colors.white,),
-                  title: Text(time.timeDisplay.toString(), style: TextStyle(color: Colors.white, fontSize: 18),),
-                  subtitle: Text("Thời gian",style: TextStyle(color: Colors.grey, fontSize: 13,fontWeight: FontWeight.bold)),
+                  leading: Icon(
+                    Icons.timer,
+                    size: 30,
+                    color: Colors.black,
+                  ),
+                  title: Text(
+                    time.timeDisplay.toString(),
+                    style: TextStyle(color: Colors.black, fontSize: 18),
+                  ),
+                  subtitle: Text("Thời gian",
+                      style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold)),
                 ),
               ),
             ),
           ],
         ),
-        SizedBox(height: 23,),
+        SizedBox(
+          height: 23,
+        ),
         Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: Row(
@@ -71,9 +93,19 @@ class _CountViewState extends State<CountView> {
                   leading: Container(
                       width: 35,
                       height: 35,
-                      child: Image.asset('assets/images/distance.png',fit: BoxFit.fill,)),
-                  title: Text(home.distance.toString() + " km", style: TextStyle(color: Colors.white, fontSize: 18),),
-                  subtitle: Text("Q.đường",style: TextStyle(color: Colors.grey, fontSize: 13,fontWeight: FontWeight.bold)),
+                      child: Image.asset(
+                        'assets/images/distance.png',
+                        fit: BoxFit.fill,
+                      )),
+                  title: Text(
+                    home.distance.toString() + " km",
+                    style: TextStyle(color: Colors.black, fontSize: 18),
+                  ),
+                  subtitle: Text("Q.đường",
+                      style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold)),
                 ),
               ),
               Padding(
@@ -91,9 +123,19 @@ class _CountViewState extends State<CountView> {
                     leading: Container(
                         width: 30,
                         height: 30,
-                        child: Image.asset('assets/images/burnedx.png',fit: BoxFit.fill,)),
-                    title: Text(home.caloriesBurned.toString(), style: TextStyle(color: Colors.white, fontSize: 18),),
-                    subtitle: Text("Calo",style: TextStyle(color: Colors.grey, fontSize: 14,fontWeight: FontWeight.bold)),
+                        child: Image.asset(
+                          'assets/images/burnedx.png',
+                          fit: BoxFit.fill,
+                        )),
+                    title: Text(
+                      home.caloriesBurned.toString(),
+                      style: TextStyle(color: Colors.black, fontSize: 18),
+                    ),
+                    subtitle: Text("Calo",
+                        style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold)),
                   ),
                 ),
               ),

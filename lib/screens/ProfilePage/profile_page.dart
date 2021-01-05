@@ -4,7 +4,10 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fitness_app/helpers/colors_constant.dart';
 import 'package:fitness_app/helpers/shared_preferrence.dart';
 import 'package:fitness_app/models/user.dart';
+import 'package:fitness_app/screens/ProfilePage/follow_page.dart';
 import 'package:fitness_app/screens/ProfilePage/profile_controller.dart';
+import 'package:fitness_app/screens/ProfilePage/statistic_page.dart';
+import 'package:fitness_app/widgets/user_activities_widet.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -24,15 +27,16 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage>
     with AutomaticKeepAliveClientMixin {
   UserData myProfile;
-  UserData user;
-  bool isFollow;
 
-  bool isLoading = false;
+  UserData user = new UserData.empty();
+
+  bool isFollow = false;
+  bool isLoading = true;
 
   ProfileController profileController;
 
-  List<String> followerList;
-  List<String> followingList;
+  List<String> followerList = new List();
+  List<String> followingList = new List();
 
   @override
   void initState() {
@@ -48,15 +52,16 @@ class _ProfilePageState extends State<ProfilePage>
 
   Future<void> init() async {
     profileController = new ProfileController();
+
     myProfile = await StorageUtil.getUserInfo();
+
     user = widget.userData ?? myProfile;
-    if (widget.userData != null) {
-      var tmp = await profileController.checkFollower(
+    print(myProfile.id + ", " + user.id);
+    if (user.id != myProfile.id) {
+      isFollow = await profileController.checkFollower(
           myProfile.id, widget.userData.id);
-      setState(() {
-        isFollow = tmp;
-      });
     }
+
     followerList = await profileController.getFollower(user.id);
     followingList = await profileController.getFollowing(user.id);
   }
@@ -68,19 +73,24 @@ class _ProfilePageState extends State<ProfilePage>
       appBar: AppBar(
         backgroundColor: kColorOrange,
         automaticallyImplyLeading: widget.userData != null,
-        title: Text("Profile"),
+        title: Text("Trang cá nhân"),
         actions: [
-          if (widget.userData == null)
-            IconButton(
-              icon: Icon(Icons.edit),
-              onPressed: () {
-                Navigator.pushNamed(context, 'edit_profile_screen');
-              },
-              tooltip: "Edit Profile",
-            ),
+          isLoading
+              ? SizedBox()
+              : user.id != myProfile.id
+                  ? SizedBox()
+                  : IconButton(
+                      icon: Icon(Icons.edit),
+                      onPressed: () {
+                        Navigator.pushNamed(context, 'edit_profile_screen');
+                      },
+                      tooltip: "Edit Profile",
+                    ),
           IconButton(
             icon: Icon(Icons.settings),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.pushNamed(context, "setting_screen");
+            },
             tooltip: "Settings",
           ),
           IconButton(
@@ -124,7 +134,7 @@ class _ProfilePageState extends State<ProfilePage>
                                 width: 20,
                               ),
                               Text(
-                                user.name,
+                                user.name ?? "Null",
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 18),
                               ),
@@ -141,33 +151,61 @@ class _ProfilePageState extends State<ProfilePage>
                                 children: [
                                   FlatButton(
                                     padding: EdgeInsets.all(0),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) => FollowPage(
+                                                  0,
+                                                  followerList,
+                                                  followingList)));
+                                    },
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "Theo doi ban",
+                                          "Theo dõi bạn",
                                           style: TextStyle(color: kColorOrange),
                                         ),
                                         Text(followerList.length.toString()),
                                       ],
                                     ),
                                   ),
-                                  VerticalDivider(
-                                    color: kColorBlack,
-                                    width: 5,
-                                    thickness: 5,
+                                  SizedBox(
+                                    width: 4,
+                                  ),
+                                  Container(
+                                      height: 25,
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          right: BorderSide(
+                                            color:
+                                                Theme.of(context).dividerColor,
+                                            width: 1,
+                                          ),
+                                        ),
+                                      )),
+                                  SizedBox(
+                                    width: 4,
                                   ),
                                   FlatButton(
                                     padding: EdgeInsets.all(0),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) => FollowPage(
+                                                  1,
+                                                  followerList,
+                                                  followingList)));
+                                    },
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "Dang theo doi",
+                                          "Đang theo dõi",
                                           style: TextStyle(color: kColorOrange),
                                         ),
                                         Text(followingList.length.toString()),
@@ -176,7 +214,7 @@ class _ProfilePageState extends State<ProfilePage>
                                   ),
                                 ],
                               ),
-                              widget.userData == null
+                              user.id == myProfile.id
                                   ? FlatButton(
                                       textColor: kColorOrange,
                                       onPressed: () {},
@@ -190,8 +228,31 @@ class _ProfilePageState extends State<ProfilePage>
                                   : isFollow
                                       ? FlatButton(
                                           textColor: kColorOrange,
-                                          onPressed: () {},
-                                          child: Text("Dang theo doi"),
+                                          onPressed: () {
+                                            showModalBottomSheet(
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.only(
+                                                          topLeft:
+                                                              Radius.circular(
+                                                                  15),
+                                                          topRight:
+                                                              Radius.circular(
+                                                                  15)),
+                                                ),
+                                                context: context,
+                                                builder: (_) {
+                                                  return SizedBox(
+                                                    height:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            0.5,
+                                                    child: Container(),
+                                                  );
+                                                });
+                                          },
+                                          child: Text("Đang theo dõi"),
                                           shape: RoundedRectangleBorder(
                                               side: BorderSide(
                                                   color: kColorOrange,
@@ -209,7 +270,7 @@ class _ProfilePageState extends State<ProfilePage>
                                               isFollow = true;
                                             });
                                           },
-                                          child: Text("Theo doi"),
+                                          child: Text("Theo dõi"),
                                           color: kColorOrange,
                                           shape: RoundedRectangleBorder(
                                               side: BorderSide(
@@ -234,20 +295,40 @@ class _ProfilePageState extends State<ProfilePage>
                       children: [
                         FlatButton(
                             padding: EdgeInsets.all(0),
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => Scaffold(
+                                      appBar: AppBar(
+                                        backgroundColor: kColorOrange,
+                                        title: Text("Hoạt động"),
+                                      ),
+                                      backgroundColor: Colors.grey[300],
+                                      body: Activity(
+                                        userId: user.id,
+                                      )),
+                                ),
+                              );
+                            },
                             child: ListTile(
                               leading: Icon(Icons.local_activity_outlined),
-                              title: Text("Hoat dong"),
-                              subtitle: Text("2 gio trc"),
+                              title: Text("Hoạt động"),
                               trailing: Icon(Icons.arrow_forward_ios),
                             )),
                         FlatButton(
                             padding: EdgeInsets.all(0),
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => StatisticPage(user.id),
+                                ),
+                              );
+                            },
                             child: ListTile(
                               leading: Icon(Icons.table_rows_outlined),
-                              title: Text("Thong ke"),
-                              subtitle: Text("nam nay: 50km"),
+                              title: Text("Thống kê"),
                               trailing: Icon(Icons.arrow_forward_ios),
                             ),
                             shape: Border(
@@ -259,8 +340,7 @@ class _ProfilePageState extends State<ProfilePage>
                             onPressed: () {},
                             child: ListTile(
                               leading: Icon(Icons.featured_play_list_outlined),
-                              title: Text("Bai viet"),
-                              subtitle: Text("2"),
+                              title: Text("Bài viết"),
                               trailing: Icon(Icons.arrow_forward_ios),
                             )),
                       ],
@@ -278,7 +358,7 @@ class _ProfilePageState extends State<ProfilePage>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Thu thach",
+                                "Thử thách",
                                 style: TextStyle(
                                     fontSize: 18, fontWeight: FontWeight.bold),
                               ),
@@ -356,7 +436,7 @@ class _ProfilePageState extends State<ProfilePage>
                             padding: EdgeInsets.all(0),
                             onPressed: () {},
                             child: ListTile(
-                              leading: Text("Bai viet"),
+                              leading: Text("Tất cả"),
                               trailing: Icon(Icons.arrow_forward_ios),
                             )),
                       ],
@@ -374,7 +454,7 @@ class _ProfilePageState extends State<ProfilePage>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Cau lac bo",
+                                "Câu lạc bộ",
                                 style: TextStyle(
                                     fontSize: 18, fontWeight: FontWeight.bold),
                               ),
@@ -452,7 +532,7 @@ class _ProfilePageState extends State<ProfilePage>
                             padding: EdgeInsets.all(0),
                             onPressed: () {},
                             child: ListTile(
-                              leading: Text("Bai viet"),
+                              leading: Text("Tất cả"),
                               trailing: Icon(Icons.arrow_forward_ios),
                             )),
                       ],

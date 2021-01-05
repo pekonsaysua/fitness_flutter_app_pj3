@@ -45,6 +45,8 @@ class CommentModel {
   }
 }
 
+/*
+
 List<PostModel> list_post = [
   new PostModel(
       "1234",
@@ -79,3 +81,6 @@ List<PostModel> list_post = [
       "1",
       false),
 ];
+
+
+ */

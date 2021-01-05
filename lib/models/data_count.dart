@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DataCount {
-  static const ID = 'id';
-  static const ID_USER = 'uid';
   static const STEP = 'step';
   static const DISTANCE = 'distance';
   static const CALORIES = 'calories';
@@ -10,8 +8,6 @@ class DataCount {
   static const DATE = 'date';
   static const TRACK = 'track';
 
-  String id;
-  String uid;
   String step;
   String distance;
   String calories;
@@ -19,12 +15,12 @@ class DataCount {
   String date;
   List<Coordinate> track;
 
-  DataCount(this.id, this.uid, this.step, this.distance, this.calories,
-      this.time, this.date, this.track);
+  DataCount(this.step, this.distance, this.calories, this.time, this.date,
+      this.track);
 
   DataCount.formSnapShot(DocumentSnapshot snapshot) {
     Map data = snapshot.data;
-    uid = data[ID_USER];
+
     step = data[STEP];
     distance = data[DISTANCE];
     time = data[TIME];
@@ -35,8 +31,6 @@ class DataCount {
 
   factory DataCount.fromJson(Map<String, dynamic> json) {
     return DataCount(
-      json[ID],
-      json[ID_USER],
       json[STEP],
       json[DISTANCE],
       json[CALORIES],

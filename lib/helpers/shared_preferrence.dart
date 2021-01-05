@@ -60,7 +60,19 @@ class StorageUtil {
   //TODO: get User info
   static Future<UserData> getUserInfo() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    UserData user =
+    Map<String, dynamic> doc = jsonDecode(preferences.getString('UserInfo'));
+    UserData user = new UserData(
+      doc['uid'],
+      doc['name'],
+      doc['email'],
+      doc['phone'],
+      doc['pass'],
+      doc['height'],
+      doc['weight'],
+      doc['url_avt'],
+      doc['url_cover'],
+    );
+    UserData user1 =
         new UserData.fromJson(jsonDecode(preferences.getString('UserInfo')));
     return user;
   }

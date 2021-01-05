@@ -1,5 +1,6 @@
 import 'package:fitness_app/apis/api.dart';
 import 'package:fitness_app/helpers/colors_constant.dart';
+import 'package:fitness_app/helpers/parse_date_helpers.dart';
 import 'package:fitness_app/helpers/shared_preferrence.dart';
 import 'package:fitness_app/models/data_count.dart';
 import 'package:fitness_app/models/post.dart';
@@ -64,9 +65,8 @@ class _PostWidgetState extends State<PostWidget> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => ProfilePage(
-                            userData: myProfile.id == widget.post.user.id
-                                ? null
-                                : widget.post.user),
+                          userData: widget.post.user,
+                        ),
                       ),
                     );
                   },
@@ -82,51 +82,124 @@ class _PostWidgetState extends State<PostWidget> {
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       //SizedBox(height: 0.0),
-                      Text(widget.post.act.date)
+                      ParseDate.getDay(widget.post.act.date) == 0
+                          ? Text("Hom nay")
+                          : Text(ParseDate.getDay(widget.post.act.date)
+                                  .toString() +
+                              " ngay truoc"),
                     ],
                   ),
                 ),
               ],
             ),
           ),
+          if (widget.post.description != null)
+            Container(
+                margin: EdgeInsets.symmetric(horizontal: 10),
+                padding: EdgeInsets.only(bottom: 15),
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  widget.post.description,
+                  style: TextStyle(color: kColorGrey),
+                )),
           Container(
             margin: EdgeInsets.symmetric(horizontal: 10),
-            //padding: EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+            padding: EdgeInsets.only(bottom: 15),
             child: Row(
               //mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Expanded(
-                    child: Column(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Distance"),
+                    Text(
+                      "Quãng đường",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
                     Text(widget.post.act.distance),
                   ],
-                )),
-                Expanded(
-                    child: Column(
+                ),
+                SizedBox(
+                  width: 4,
+                ),
+                Container(
+                    height: 25,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        right: BorderSide(
+                          color: Theme.of(context).dividerColor,
+                          width: 1,
+                        ),
+                      ),
+                    )),
+                SizedBox(
+                  width: 4,
+                ),
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Steps"),
+                    Text(
+                      "Số bước chân",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
                     Text(widget.post.act.step),
                   ],
-                )),
-                Expanded(
-                    child: Column(
+                ),
+                SizedBox(
+                  width: 4,
+                ),
+                Container(
+                    height: 25,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        right: BorderSide(
+                          color: Theme.of(context).dividerColor,
+                          width: 1,
+                        ),
+                      ),
+                    )),
+                SizedBox(
+                  width: 4,
+                ),
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Calories"),
+                    Text(
+                      "Calo ",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
                     Text(widget.post.act.calories),
                   ],
-                )),
-                Expanded(
-                    child: Column(
+                ),
+                SizedBox(
+                  width: 4,
+                ),
+                Container(
+                    height: 25,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        right: BorderSide(
+                          color: Theme.of(context).dividerColor,
+                          width: 1,
+                        ),
+                      ),
+                    )),
+                SizedBox(
+                  width: 4,
+                ),
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Time"),
+                    Text(
+                      "Thời gian",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
                     Text(widget.post.act.time),
                   ],
-                )),
+                ),
               ],
             ),
           ),
@@ -144,12 +217,12 @@ class _PostWidgetState extends State<PostWidget> {
                       Row(
                         children: <Widget>[
                           Icon(FontAwesomeIcons.thumbsUp, size: 15.0),
-                          Text('${widget.post.like}'),
+                          Text(widget.post.like),
                         ],
                       ),
                       Row(
                         children: <Widget>[
-                          Text('${widget.post.comment} bình luận  •  '),
+                          Text(widget.post.comment + ' bình luận  •  '),
                           Text('0 chia sẻ'),
                         ],
                       ),
@@ -164,10 +237,15 @@ class _PostWidgetState extends State<PostWidget> {
                   children: <Widget>[
                     Expanded(
                         child: FlatButton(
-                      onPressed: () {
+                      onPressed: () async {
                         setState(() {
                           widget.post.is_liked = !widget.post.is_liked;
+                          widget.post.like = widget.post.is_liked
+                              ? (int.parse(widget.post.like) + 1).toString()
+                              : (int.parse(widget.post.like) - 1).toString();
                         });
+                        String uid = await StorageUtil.getUid();
+                        Api.setLikeApi(uid, widget.post.id);
                       },
                       child: widget.post.is_liked
                           ? Icon(
@@ -183,93 +261,6 @@ class _PostWidgetState extends State<PostWidget> {
                     Expanded(
                       child: FlatButton(
                         onPressed: () async {
-                          //await showComment(context, true);
-                          List<CommentModel> comList = new List();
-                          List<UserData> likeList = new List();
-
-                          likeList.add(new UserData(
-                              "1",
-                              "hieu",
-                              "email",
-                              "phone",
-                              "123456",
-                              "weight",
-                              "height",
-                              null,
-                              null));
-                          likeList.add(new UserData(
-                              "1",
-                              "hieu",
-                              "email",
-                              "phone",
-                              "123456",
-                              "weight",
-                              "height",
-                              null,
-                              null));
-                          likeList.add(new UserData(
-                              "1",
-                              "hieu",
-                              "email",
-                              "phone",
-                              "123456",
-                              "weight",
-                              "height",
-                              null,
-                              null));
-                          likeList.add(new UserData(
-                              "1",
-                              "hieu",
-                              "email",
-                              "phone",
-                              "123456",
-                              "weight",
-                              "height",
-                              null,
-                              null));
-                          likeList.add(new UserData(
-                              "1",
-                              "hieu",
-                              "email",
-                              "phone",
-                              "123456",
-                              "weight",
-                              "height",
-                              null,
-                              null));
-                          likeList.add(new UserData(
-                              "1",
-                              "hieu",
-                              "email",
-                              "phone",
-                              "123456",
-                              "weight",
-                              "height",
-                              null,
-                              null));
-                          comList.add(new CommentModel(
-                              new UserData("1", "hieu", "email", "phone",
-                                  "123456", "weight", "height", null, null),
-                              "hello",
-                              "today"));
-                          comList.add(new CommentModel(
-                              new UserData("1", "hieu", "email", "phone",
-                                  "123456", "weight", "height", null, null),
-                              "hello",
-                              "today"));
-                          comList.add(new CommentModel(
-                              new UserData("1", "hieu", "email", "phone",
-                                  "123456", "weight", "height", null, null),
-                              "hello",
-                              "today"));
-                          comList.add(new CommentModel(
-                              new UserData("1", "hieu", "email", "phone",
-                                  "123456", "weight", "height", null, null),
-                              "hello",
-                              "today"));
-
-                          list_post[0].like_list = likeList;
-                          list_post[0].comment_list = comList;
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -284,7 +275,9 @@ class _PostWidgetState extends State<PostWidget> {
                     Expanded(
                       child: FlatButton(
                         onPressed: () {
-                          //print(widget.post.id);
+                          print(DateTime.now()
+                              .difference(DateTime.parse(widget.post.act.date))
+                              .inHours);
                         },
                         child: Icon(Icons.share_outlined, size: 20.0),
                       ),

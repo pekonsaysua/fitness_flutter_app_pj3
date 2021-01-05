@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fitness_app/apis/api.dart';
 import 'package:fitness_app/helpers/colors_constant.dart';
+import 'package:fitness_app/helpers/parse_date_helpers.dart';
 import 'package:fitness_app/helpers/shared_preferrence.dart';
 import 'package:fitness_app/models/post.dart';
 import 'package:fitness_app/models/user.dart';
+import 'package:fitness_app/screens/ProfilePage/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -20,11 +22,14 @@ class _DiscussionPageState extends State<DiscussionPage> {
   bool _showKeyboard = false;
 
   FocusNode focusNode;
+
   List<UserData> likeList = new List();
   List<CommentModel> commentList = new List();
   bool isLoading = false;
 
   TextEditingController textEditingController = new TextEditingController();
+
+  String myId = "";
 
   @override
   void initState() {
@@ -49,47 +54,9 @@ class _DiscussionPageState extends State<DiscussionPage> {
   }
 
   Future<void> init() async {
-    likeList = await getListLikes();
-    commentList = await getListComments();
-  }
-
-  Future<List<CommentModel>> getListComments() async {
-    List<CommentModel> listComment = new List();
-    try {
-      var value = await Firestore.instance
-          .collection('posts')
-          .document(widget.post.id)
-          .collection("comment_list")
-          .getDocuments();
-      for (var element in value.documents) {
-        Map<String, dynamic> json = element.data;
-        UserData user = await Api.getUserApi(json["uid"]);
-        listComment
-            .add(new CommentModel(user, json["comment"], json["created"]));
-      }
-    } catch (e) {
-      e.toString();
-    }
-    return listComment;
-  }
-
-  Future<List<UserData>> getListLikes() async {
-    List<UserData> listLike = new List();
-    try {
-      var value = await Firestore.instance
-          .collection('posts')
-          .document(widget.post.id)
-          .collection("like_list")
-          .getDocuments();
-      for (var element in value.documents) {
-        Map<String, dynamic> json = element.data;
-        UserData user = await Api.getUserApi(json["uid"]);
-        listLike.add(user);
-      }
-    } catch (e) {
-      e.toString();
-    }
-    return listLike;
+    myId = await StorageUtil.getUid();
+    likeList = await Api.getListLikesApi(widget.post.id);
+    commentList = await Api.getListCommentsApi(widget.post.id);
   }
 
   void showKeyboard() {
@@ -105,7 +72,7 @@ class _DiscussionPageState extends State<DiscussionPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: kColorOrange,
-        title: Text("Thao luan"),
+        title: Text("Thảo luận"),
       ),
       body: isLoading
           ? Container(
@@ -122,6 +89,7 @@ class _DiscussionPageState extends State<DiscussionPage> {
                           0.0) dismissKeyboard();
                     },
                     child: ListView(
+                      physics: ScrollPhysics(),
                       shrinkWrap: true,
                       children: [
                         Container(
@@ -139,11 +107,23 @@ class _DiscussionPageState extends State<DiscussionPage> {
                                 child: Row(
                                   children: [
                                     IconButton(
-                                        onPressed: () {
+                                        onPressed: () async {
                                           setState(() {
                                             widget.post.is_liked =
                                                 !widget.post.is_liked;
+
+                                            widget.post.like = widget
+                                                    .post.is_liked
+                                                ? (int.parse(widget.post.like) +
+                                                        1)
+                                                    .toString()
+                                                : (int.parse(widget.post.like) -
+                                                        1)
+                                                    .toString();
                                           });
+                                          String uid =
+                                              await StorageUtil.getUid();
+                                          Api.setLikeApi(uid, widget.post.id);
                                         },
                                         icon: widget.post.is_liked
                                             ? Icon(
@@ -159,12 +139,13 @@ class _DiscussionPageState extends State<DiscussionPage> {
                                     SizedBox(
                                       width: 20,
                                     ),
-                                    Text(likeList.length.toString()),
+                                    Text(widget.post.like),
                                   ],
                                 ),
                               ),
                               Expanded(
                                 child: ListView.separated(
+                                  physics: ScrollPhysics(),
                                   separatorBuilder: (context, index) =>
                                       SizedBox(
                                     width: 20,
@@ -194,10 +175,10 @@ class _DiscussionPageState extends State<DiscussionPage> {
                           ),
                         ),
                         ListView.builder(
+                            physics: ScrollPhysics(),
                             shrinkWrap: true,
                             itemCount: commentList.length,
                             itemBuilder: (context, index) {
-                              var avatar = commentList[index].poster.urlAvt;
                               CommentModel com = commentList[index];
                               return Container(
                                 decoration: BoxDecoration(
@@ -206,30 +187,73 @@ class _DiscussionPageState extends State<DiscussionPage> {
                                           color: kColorGrey, width: 0.7)),
                                 ),
                                 child: ListTile(
-                                  leading: CircleAvatar(
-                                    backgroundColor: kColorGrey,
-                                    radius: 25.0,
-                                    backgroundImage: com.poster.urlAvt == null
-                                        ? AssetImage('assets/images/avatar.jpg')
-                                        : NetworkImage(com.poster.urlAvt),
+                                  leading: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ProfilePage(
+                                            userData: com.poster,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: CircleAvatar(
+                                      backgroundColor: kColorGrey,
+                                      radius: 25.0,
+                                      backgroundImage: com.poster.urlAvt == null
+                                          ? AssetImage(
+                                              'assets/images/avatar.jpg')
+                                          : NetworkImage(com.poster.urlAvt),
+                                    ),
                                   ),
-                                  title: Text(
-                                    com.poster.name +
-                                        "        * " +
-                                        com.created,
-                                    style: TextStyle(
-                                        color: Colors.grey[400],
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold),
+                                  title: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        com.poster.name,
+                                        style: TextStyle(
+                                            color: Colors.grey[400],
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      ParseDate.getDay(com.created) == 0
+                                          ? ParseDate.getHour(com.created) == 0
+                                              ? Text("Vua xong")
+                                              : Text(
+                                                  ParseDate.getHour(com.created)
+                                                          .toString() +
+                                                      " gio truoc")
+                                          : Text(ParseDate.getDay(com.created)
+                                                  .toString() +
+                                              " ngay truoc"),
+                                    ],
                                   ),
                                   subtitle: Text(
                                     com.comment,
                                     style: TextStyle(
                                         color: kColorBlack, fontSize: 16),
                                   ),
-                                  trailing: IconButton(
-                                    onPressed: () {},
-                                    icon: Icon(Icons.more_vert_outlined),
+                                  trailing: PopupMenuButton(
+                                    onSelected: (myChoose) {
+                                      print(myChoose);
+                                      setState(() {
+                                        commentList.removeAt(index);
+                                      });
+                                    },
+                                    offset: Offset(500, 1000),
+                                    itemBuilder: (_) => <PopupMenuItem<String>>[
+                                      myId == com.poster.id
+                                          ? PopupMenuItem<String>(
+                                              child: new Text('Xóa bình luận'),
+                                              value: 'delete',
+                                            )
+                                          : PopupMenuItem<String>(
+                                              child: new Text('Ẩn bình luận'),
+                                              value: 'hide',
+                                            ),
+                                    ],
                                   ),
                                 ),
                               );
@@ -240,36 +264,47 @@ class _DiscussionPageState extends State<DiscussionPage> {
                 ),
                 Card(
                   elevation: 5,
-                  child: TextField(
-                    controller: textEditingController,
-                    autofocus: false,
-                    textInputAction: TextInputAction.send,
-                    focusNode: focusNode,
-                    decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: "Viet thu gi do",
-                        suffixIcon: GestureDetector(
-                          onTap: () async {
-                            String uId = await StorageUtil.getUid();
+                  child: Container(
+                    padding: EdgeInsets.only(left: 15),
+                    child: TextField(
+                      controller: textEditingController,
+                      autofocus: false,
+                      textInputAction: TextInputAction.send,
+                      focusNode: focusNode,
+                      decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: "Viết thứ gì đó",
+                          suffixIcon: GestureDetector(
+                            onTap: () async {
+                              var text = textEditingController.text;
+                              textEditingController.text = "";
+                              dismissKeyboard();
 
-                            DocumentReference docRef = await Firestore.instance
-                                .collection('posts')
-                                .document(widget.post.id)
-                                .collection('comment_list')
-                                .add({
-                              "uid": uId,
-                              "comment": textEditingController.text,
-                              "created": DateTime.now().toString()
-                            });
-                            Firestore.instance
-                                .collection('posts')
-                                .document(widget.post.id)
-                                .collection('comment_list')
-                                .document(docRef.documentID)
-                                .updateData({'id': docRef.documentID});
-                          },
-                          child: Icon(Icons.send),
-                        )),
+                              DocumentReference docRef = await Firestore
+                                  .instance
+                                  .collection('posts')
+                                  .document(widget.post.id)
+                                  .collection('comment_list')
+                                  .add({
+                                "uid": myId,
+                                "comment": text,
+                                "created": DateTime.now().toString()
+                              });
+                              Firestore.instance
+                                  .collection('posts')
+                                  .document(widget.post.id)
+                                  .collection('comment_list')
+                                  .document(docRef.documentID)
+                                  .updateData({'id': docRef.documentID});
+
+                              await Api.getListCommentsApi(widget.post.id)
+                                  .then((value) => setState(() {
+                                        commentList = value;
+                                      }));
+                            },
+                            child: Icon(Icons.send),
+                          )),
+                    ),
                   ),
                 )
               ],

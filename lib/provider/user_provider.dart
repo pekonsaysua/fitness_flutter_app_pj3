@@ -171,11 +171,18 @@ class UserProvider with ChangeNotifier {
   }
 
   //------------------------Tạo dữ liệu mới ----------------------
-  Future setDataCount(String idUser, int step, double distance, double calories,
-      String time, String date, List<LatLng> latlngs) async {
+  Future setDataCount(
+      String idUser,
+      int step,
+      double distance,
+      double calories,
+      String time,
+      String date,
+      List<LatLng> latlngs,
+      String description) async {
     List<Map> convert = new List();
     for (var i in latlngs) convert.add({'lat': i.latitude, 'lng': i.longitude});
-
+/*
     DocumentReference docRef = await _firestore.collection('activities').add({
       'uid': idUser,
       'step': step.toString(),
@@ -190,23 +197,37 @@ class UserProvider with ChangeNotifier {
         .document(docRef.documentID)
         .updateData({'id': docRef.documentID});
 
+
+ */
     DocumentReference docRef2 =
-    await Firestore.instance.collection('posts').add({
+        await Firestore.instance.collection('posts').add({
       'uid': idUser,
-      'actId': docRef.documentID,
+      //'actId': docRef.documentID,
       'type': 'run',
-      //'description': description,
+      'created': date,
+      'description': description,
     });
-    Firestore.instance
+
+    await _firestore
         .collection('posts')
         .document(docRef2.documentID)
-        .updateData({'id': docRef2.documentID});
+        .updateData({
+      'id': docRef2.documentID,
+      "activity": {
+        'step': step.toString(),
+        'time': time,
+        'distance': distance.toString(),
+        'calories': calories.toString(),
+        'date': date,
+        'track': convert,
+      }
+    });
     notifyListeners();
   }
 
   Future createPost(String idUser, String type, String description) async {
     DocumentReference docRef =
-    await Firestore.instance.collection('posts').add({
+        await Firestore.instance.collection('posts').add({
       'uid': idUser,
       'type': type,
       'description': description,
@@ -216,8 +237,6 @@ class UserProvider with ChangeNotifier {
         .document(docRef.documentID)
         .updateData({'id': docRef.documentID});
   }
-
-
 
   Future<void> _onStateChanged(FirebaseUser user) async {
     if (user == null) {

@@ -10,7 +10,6 @@ import 'package:get/get.dart';
 import 'package:http/http.dart';
 
 class FollowingController extends GetxController {
-
   StreamController _listPost = new StreamController.broadcast();
 
   Stream get listPostStream => _listPost.stream;
@@ -24,6 +23,13 @@ class FollowingController extends GetxController {
         Map<String, dynamic> json = element.data;
         UserData user = await Api.getUserApi(json["uid"]);
         DataCount act = await Api.getActivityApi(json['actId']);
+
+        var list = await Api.getListLikesApi(json["id"]);
+        var likeNumber = list.length;
+        var list2 = await Api.getListCommentsApi(json["id"]);
+        var commentNumber = list2.length;
+        var check = await Api.checkIslikeApi(user.id, json["id"]);
+
         PostModel postModel = new PostModel(
             json["id"],
             user,
@@ -31,9 +37,9 @@ class FollowingController extends GetxController {
             json['type'],
             json["title"],
             json["description"],
-            json['likes'] == null ? "0" : element.data['likes'].length,
-            json['comments'] == null ? "0" : element.data['comments'].length,
-            json['is_liked'] ?? false);
+            likeNumber.toString(),
+            commentNumber.toString(),
+            check);
         listPost.add(postModel);
       }
     } catch (e) {

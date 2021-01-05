@@ -24,23 +24,15 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        elevation: 0.0,
-        automaticallyImplyLeading: false,
+        brightness: Brightness.light,
+        elevation: 1.0,
+        automaticallyImplyLeading: true,
         backgroundColor: kColorWhite,
         centerTitle: true,
-        leading: FlatButton(
-          padding: EdgeInsets.all(0),
-          onPressed: () {},
-          child: Text("Settings"),
-        ),
         title: Text(
-          "Run",
+          "Hoạt động",
           style: TextStyle(color: kColorOrange),
         ),
-        actions: [
-          FlatButton(
-              padding: EdgeInsets.all(0), onPressed: () {}, child: Text("Hide"))
-        ],
       ),
       body: Container(
         width: MediaQuery.of(context).size.width,
@@ -82,6 +74,8 @@ class _RunControlState extends State<RunControl> {
 
   UserData userData;
 
+  TextEditingController descriptionTextController = new TextEditingController();
+
   @override
   void initState() {
     // TODO: implement initState
@@ -105,15 +99,7 @@ class _RunControlState extends State<RunControl> {
       panel: GestureDetector(
         onTap: _togglePanel,
         child: Container(
-          decoration: BoxDecoration(
-              gradient: LinearGradient(
-            colors: [
-              Colors.black54,
-              Colors.blueGrey,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          )),
+          decoration: BoxDecoration(),
           child: Column(
             children: <Widget>[
               //----------Button điều khiển------------------
@@ -206,6 +192,143 @@ class _RunControlState extends State<RunControl> {
                                   isStarting = false;
                                 });
                                 time.pauseStopwatch();
+
+                                print("ngoai" + home.latlngs.toString());
+
+                                Map<String, dynamic> json = {
+                                  "uid": userData.id,
+                                  "step": home.stepCount,
+                                  "distance": home.distance,
+                                  "calo": home.caloriesBurned,
+                                  "time": time.timeDisplay,
+                                  "track": home.latlngs.toList(),
+                                };
+
+                                showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: Text("Lưu hoạt động"),
+                                        content: SingleChildScrollView(
+                                          child: Container(
+                                            child: Column(
+                                              children: [
+                                                Container(
+                                                  child: TextField(
+                                                    controller:
+                                                        descriptionTextController,
+                                                    autofocus: true,
+                                                    decoration: InputDecoration(
+                                                      hintText: "Thêm mô tả",
+                                                    ),
+                                                    textInputAction:
+                                                        TextInputAction.newline,
+                                                    maxLines: 3,
+                                                    minLines: 1,
+                                                    maxLength: 50,
+                                                  ),
+                                                ),
+                                                Container(
+                                                    child: Row(
+                                                  children: [
+                                                    Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text("Khoảng cách"),
+                                                            Text(
+                                                                json["distance"]
+                                                                    .toString())
+                                                          ],
+                                                        ),
+                                                        SizedBox(
+                                                          height: 20,
+                                                        ),
+                                                        Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text("Bước chân"),
+                                                            Text(json["step"]
+                                                                .toString())
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    SizedBox(
+                                                      width: 20,
+                                                    ),
+                                                    Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text("Calo"),
+                                                            Text(json["calo"]
+                                                                .toString())
+                                                          ],
+                                                        ),
+                                                        SizedBox(
+                                                          height: 20,
+                                                        ),
+                                                        Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text("Thời gian"),
+                                                            Text(json["time"]
+                                                                .toString()),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ))
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        actions: [
+                                          FlatButton(
+                                              onPressed: () {
+                                                print("trong" +
+                                                    json["track"].toString());
+                                                Navigator.pop(context);
+                                              },
+                                              child: Text("huy")),
+                                          FlatButton(
+                                              onPressed: () {
+                                                user.setDataCount(
+                                                    json["uid"],
+                                                    json["step"],
+                                                    json["distance"],
+                                                    json["calo"],
+                                                    json["time"],
+                                                    DateTime.now().toString(),
+                                                    json["track"],
+                                                    descriptionTextController
+                                                        .text);
+                                                Navigator.pop(context);
+                                              },
+                                              child: Text("luu"))
+                                        ],
+                                      );
+                                    });
+
+                                /*
                                 user.setDataCount(
                                     userData.id,
                                     home.stepCount,
@@ -215,7 +338,7 @@ class _RunControlState extends State<RunControl> {
                                     DateTime.now().toString(),
                                     home.latlngs);
 
-                                //createPost(userData.id, "activity", "");
+                                 */
 
                                 time.resetStopwatch();
                                 home.stopListeningStep();

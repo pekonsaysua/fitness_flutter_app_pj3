@@ -49,7 +49,6 @@ class _FullViewMapState extends State<FullViewMap> {
     return new LatLng(aveLat, aveLng);
   }
 
-
   @override
   void dispose() {
     // TODO: implement dispose

@@ -19,35 +19,39 @@ class _EditProfileState extends State<EditProfile> {
   final _key = GlobalKey<ScaffoldState>();
   String avtUrl;
   String coverUrl;
-  bool _allowEdit = true;
+
+  bool isLoading = true;
+
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
+
   String _uid;
   File _imageAvt;
   File _imageCover;
   UserData userFake;
 
-  String triAva = "https://scontent.fhan3-3.fna.fbcdn.net/v/t1.0-9/41371619_468795623638651_1824831978009001984_o.jpg?_nc_cat=106&ccb=2&_nc_sid=09cbfe&_nc_ohc=Ff-A6AlOKy8AX-Q2xZz&_nc_ht=scontent.fhan3-3.fna&oh=67a9a268348a584576a0fc4eb9543076&oe=5FE4DBEF";
+  String triAva =
+      "https://scontent.fhan3-3.fna.fbcdn.net/v/t1.0-9/41371619_468795623638651_1824831978009001984_o.jpg?_nc_cat=106&ccb=2&_nc_sid=09cbfe&_nc_ohc=Ff-A6AlOKy8AX-Q2xZz&_nc_ht=scontent.fhan3-3.fna&oh=67a9a268348a584576a0fc4eb9543076&oe=5FE4DBEF";
 
   @override
   void initState() {
     // TODO: implement initState
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      userFake = await StorageUtil.getUserInfo();
+      setState(() {
+        isLoading = true;
+      });
+      await init();
+      setState(() {
+        isLoading = false;
+      });
     });
-    StorageUtil.getUserInfo().then((value) => setState((){
-      userFake = value;
-    }));
     super.initState();
-
   }
 
-
-  @override
-  Widget build(BuildContext context) {
-    final user = Provider.of<UserProvider>(context);
+  Future<void> init() async {
+    userFake = await StorageUtil.getUserInfo();
     _phoneController.text = userFake.phone;
     _nameController.text = userFake.name;
     _heightController.text = userFake.height;
@@ -55,26 +59,31 @@ class _EditProfileState extends State<EditProfile> {
     _uid = userFake.id;
     avtUrl = userFake.urlAvt;
     coverUrl = userFake.urlCover;
+  }
 
+  Future getImageAvt() async {
+    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      _imageAvt = image;
+    });
+  }
 
+  Future getImageCover() async {
+    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      _imageCover = image;
+    });
+  }
 
-    Future getImageAvt() async {
-      var image = await ImagePicker.pickImage(source: ImageSource.gallery);
-      setState(() {
-        _imageAvt = image;
-      });
-    }
-    Future getImageCover() async {
-      var image = await ImagePicker.pickImage(source: ImageSource.gallery);
-      setState(() {
-        _imageCover = image;
-      });
-    }
+  @override
+  Widget build(BuildContext context) {
+    final user = Provider.of<UserProvider>(context);
 
     //----------Cập nhật avatar---------------
-    Future uploadAvt(BuildContext context) async{
+    Future uploadAvt(BuildContext context) async {
       String fileName = basename(_imageAvt.path);
-      StorageReference firebaseStorageRef = FirebaseStorage.instance.ref().child(fileName);
+      StorageReference firebaseStorageRef =
+          FirebaseStorage.instance.ref().child(fileName);
       StorageUploadTask uploadTask = firebaseStorageRef.putFile(_imageAvt);
       StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
       String url = await taskSnapshot.ref.getDownloadURL();
@@ -84,10 +93,12 @@ class _EditProfileState extends State<EditProfile> {
         _imageAvt = null;
       });
     }
+
     //----------Cập nhật cover--------------
-    Future uploadCover(BuildContext context) async{
+    Future uploadCover(BuildContext context) async {
       String fileName = basename(_imageCover.path);
-      StorageReference firebaseStorageRef = FirebaseStorage.instance.ref().child(fileName);
+      StorageReference firebaseStorageRef =
+          FirebaseStorage.instance.ref().child(fileName);
       StorageUploadTask uploadTask = firebaseStorageRef.putFile(_imageCover);
       StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
       String url = await taskSnapshot.ref.getDownloadURL();
@@ -102,425 +113,461 @@ class _EditProfileState extends State<EditProfile> {
       key: _key,
       appBar: AppBar(
         backgroundColor: kColorOrange,
-        title: Text("Edit Profile"),
+        title: Text("Chỉnh sửa thông tin cá nhân"),
         leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () {
-              if(_allowEdit==true){
-                showDialog(context: context,
-                    builder: (context){
+              if (true) {
+                showDialog(
+                    context: context,
+                    builder: (context) {
                       return AlertDialog(
                         title: Text("Thông báo"),
                         content: Text("Bạn sẽ thoát và không lưu?"),
                         actions: <Widget>[
                           MaterialButton(
-                            onPressed: (){
+                            onPressed: () {
                               Navigator.pushNamed(context, 'main_screen');
                             },
-                            child: Text("Thoát",
+                            child: Text(
+                              "Thoát",
                               style: TextStyle(color: Colors.blue),
                             ),
                           ),
                           MaterialButton(
-                            onPressed: (){
+                            onPressed: () {
                               setState(() {
                                 _imageAvt = null;
                                 _imageCover = null;
-                                _allowEdit = false;
                               });
                               Navigator.pushNamed(context, 'main_screen');
                             },
-                            child: Text("Đồng ý",
+                            child: Text(
+                              "Đồng ý",
                               style: TextStyle(color: Colors.blue),
                             ),
                           )
                         ],
                       );
-                    }
-                );
-              }
-              else Navigator.pop(context);
+                    });
+              } else
+                Navigator.pop(context);
             }),
         actions: <Widget>[
-          IconButton(
-            color: Colors.white,
-            icon: Icon(Icons.star_border),
-            onPressed: () {},
-          ),
-          IconButton(
-            color: Colors.white,
-            icon: Icon(Icons.edit),
-            onPressed: () {
-              setState(() {
-                _allowEdit = true;
-              });
-            },
-          ),
         ],
       ),
-      body: Container(
-        child: ListView(
-          children: <Widget>[
-            Stack(
-              children: <Widget>[
-                //----------COVER----------
-                Stack(
-                  alignment: Alignment.topRight,
-                  children: <Widget>[
-                    Container(
-                        width: MediaQuery.of(context).size.width,
-                        height: 250,
-                        color: Colors.white,
-                        child: (_imageCover!=null)? Image.file(_imageCover,fit: BoxFit.fill,):
-                        Image.network(coverUrl??triAva, fit: BoxFit.fill,)
-                    ),
-                    Container(
-                      height: 40,
-                      width: 40,
-                      color: _allowEdit ? Colors.black38 : Colors.transparent,
-                      child: IconButton(
-                        icon:Icon(Icons.add_a_photo, color: _allowEdit ? Colors.white : Colors.transparent,),
-                        onPressed: _allowEdit ? (){
-                          getImageCover();
-                        } : null,
-                      ),
-                    ),
-                  ],
-                ),
-
-                //-------AVATAR----------
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(5, 150, 0, 0),
-                  child: Stack(
-                    alignment: Alignment.bottomCenter,
+      body: isLoading
+          ? Container(
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            )
+          : Container(
+              child: ListView(
+                children: <Widget>[
+                  Stack(
                     children: <Widget>[
-                      ClipOval(
-                          child: SizedBox(
-                              width: 120,
-                              height: 120,
-                              child: (_imageAvt!=null)? Image.file(_imageAvt,fit: BoxFit.fill,):
-                              Image.network(avtUrl??triAva, fit: BoxFit.fill,)
-                          )
+                      //----------COVER----------
+                      Stack(
+                        alignment: Alignment.topRight,
+                        children: <Widget>[
+                          Container(
+                              width: MediaQuery.of(context).size.width,
+                              height: 250,
+                              color: Colors.white,
+                              child: (_imageCover != null)
+                                  ? Image.file(
+                                      _imageCover,
+                                      fit: BoxFit.fill,
+                                    )
+                                  : Image.network(
+                                      coverUrl ?? triAva,
+                                      fit: BoxFit.fill,
+                                    )),
+                          Container(
+                            height: 40,
+                            width: 40,
+                            color: true ? Colors.black38 : Colors.transparent,
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.add_a_photo,
+                                color: true ? Colors.white : Colors.transparent,
+                              ),
+                              onPressed: () {
+                                getImageCover();
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                      Container(
-                        height: 30,
-                        width: 30,
-                        decoration: BoxDecoration(
-                          color: _allowEdit ? Colors.black38 : Colors.transparent,
-                          borderRadius: BorderRadius.circular(15),
-                        ),
 
-                        child: IconButton(
-                          icon:Icon(Icons.add_a_photo, color: _allowEdit ? Colors.white : Colors.transparent,size: 15,),
-                          onPressed: _allowEdit ? (){
-                            getImageAvt();
-                          } : null,
+                      //-------AVATAR----------
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(5, 150, 0, 0),
+                        child: Stack(
+                          alignment: Alignment.bottomCenter,
+                          children: <Widget>[
+                            ClipOval(
+                                child: SizedBox(
+                                    width: 120,
+                                    height: 120,
+                                    child: (_imageAvt != null)
+                                        ? Image.file(
+                                            _imageAvt,
+                                            fit: BoxFit.fill,
+                                          )
+                                        : Image.network(
+                                            avtUrl ?? triAva,
+                                            fit: BoxFit.fill,
+                                          ))),
+                            Container(
+                              height: 30,
+                              width: 30,
+                              decoration: BoxDecoration(
+                                color:
+                                    true ? Colors.black38 : Colors.transparent,
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.add_a_photo,
+                                  color:
+                                      true ? Colors.white : Colors.transparent,
+                                  size: 15,
+                                ),
+                                onPressed: () {
+                                  getImageAvt();
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        //--------------EMAIL------------------
+                        Card(
+                            child: ListTile(
+                          leading: Icon(
+                            Icons.email,
+                            size: 40,
+                            color: Colors.blueAccent,
+                          ),
+                          title: Text(
+                            "Email",
+                            style: TextStyle(
+                                fontSize: 18, color: Colors.blueAccent),
+                          ),
+                          subtitle: Text(
+                            userFake.email ?? "null",
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        )),
 
+                        //--------------NAME------------------
+                        Card(
+                          child: ListTile(
+                              leading: Icon(
+                                Icons.person,
+                                size: 40,
+                                color: Colors.blueAccent,
+                              ),
+                              title: Text(
+                                "Họ Tên",
+                                style: TextStyle(
+                                    fontSize: 18, color: Colors.blueAccent),
+                              ),
+                              subtitle: Text(
+                                userFake.name,
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              trailing: IconButton(
+                                  icon: Icon(Icons.edit),
+                                  onPressed: () {
+                                    showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return AlertDialog(
+                                            title: Text("Họ Tên"),
+                                            content: TextField(
+                                              autofocus: true,
+                                              controller: _nameController,
+                                            ),
+                                            actions: <Widget>[
+                                              MaterialButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    userFake.name =
+                                                        _nameController.text;
+                                                  });
+                                                  Navigator.of(context)
+                                                      .pop(context);
+                                                },
+                                                child: Text(
+                                                  "Lưu",
+                                                  style: TextStyle(
+                                                      color: Colors.blue),
+                                                ),
+                                              ),
+                                              MaterialButton(
+                                                onPressed: () {
+                                                  Navigator.of(context)
+                                                      .pop(context);
+                                                },
+                                                child: Text(
+                                                  "Thoát",
+                                                  style: TextStyle(
+                                                      color: Colors.blue),
+                                                ),
+                                              )
+                                            ],
+                                          );
+                                        });
+                                  })),
+                        ),
 
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  //--------------EMAIL------------------
-                  Card(
-                      child: ListTile(
-                        leading: Icon(
-                          Icons.email,
-                          size: 40,
-                          color: Colors.blueAccent,
+                        //--------------PHONE------------------
+                        Card(
+                          child: ListTile(
+                              leading: Icon(
+                                Icons.phone,
+                                size: 40,
+                                color: Colors.blueAccent,
+                              ),
+                              title: Text(
+                                "Điện thoại",
+                                style: TextStyle(
+                                    fontSize: 18, color: Colors.blueAccent),
+                              ),
+                              subtitle: Text(
+                                userFake.phone ?? "null",
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              trailing: IconButton(
+                                  icon: Icon(Icons.edit),
+                                  onPressed: () {
+                                    showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return AlertDialog(
+                                            title: Text("Điện thoại"),
+                                            content: TextField(
+                                              autofocus: true,
+                                              controller: _phoneController,
+                                            ),
+                                            actions: <Widget>[
+                                              MaterialButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    userFake.phone =
+                                                        _phoneController.text;
+                                                  });
+                                                  Navigator.of(context)
+                                                      .pop(context);
+                                                },
+                                                child: Text(
+                                                  "Lưu",
+                                                  style: TextStyle(
+                                                      color: Colors.blue),
+                                                ),
+                                              ),
+                                              MaterialButton(
+                                                onPressed: () {
+                                                  Navigator.of(context)
+                                                      .pop(context);
+                                                },
+                                                child: Text(
+                                                  "Thoát",
+                                                  style: TextStyle(
+                                                      color: Colors.blue),
+                                                ),
+                                              )
+                                            ],
+                                          );
+                                        });
+                                  })),
                         ),
-                        title: Text(
-                          "Email",
-                          style: TextStyle(
-                              fontSize: 18, color: Colors.blueAccent),
-                        ),
-                        subtitle: Text(
-                          user.userData.email,
-                          style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      )
-                  ),
 
-                  //--------------NAME------------------
-                  Card(
-                    child: ListTile(
-                        leading: Icon(
-                          Icons.person,
-                          size: 40,
-                          color: Colors.blueAccent,
+                        //--------------WEIGHT------------------
+                        Card(
+                          child: ListTile(
+                              leading: Icon(
+                                Icons.accessibility,
+                                size: 40,
+                                color: Colors.blueAccent,
+                              ),
+                              title: Text(
+                                "Cân nặng (kg)",
+                                style: TextStyle(
+                                    fontSize: 18, color: Colors.blueAccent),
+                              ),
+                              subtitle: Text(
+                                userFake.weight ?? "null" + " kg",
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              trailing: IconButton(
+                                  icon: Icon(Icons.edit),
+                                  onPressed: () {
+                                    showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return AlertDialog(
+                                            title: Text("Cân nặng"),
+                                            content: TextField(
+                                              autofocus: false,
+                                              controller: _weightController,
+                                            ),
+                                            actions: <Widget>[
+                                              MaterialButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    userFake.weight =
+                                                        _weightController.text;
+                                                  });
+                                                  Navigator.of(context)
+                                                      .pop(context);
+                                                },
+                                                child: Text(
+                                                  "Lưu",
+                                                  style: TextStyle(
+                                                      color: Colors.blue),
+                                                ),
+                                              ),
+                                              MaterialButton(
+                                                onPressed: () {
+                                                  Navigator.of(context)
+                                                      .pop(context);
+                                                },
+                                                child: Text(
+                                                  "Thoát",
+                                                  style: TextStyle(
+                                                      color: Colors.blue),
+                                                ),
+                                              )
+                                            ],
+                                          );
+                                        });
+                                  })),
                         ),
-                        title: Text(
-                          "Họ Tên",
-                          style: TextStyle(
-                              fontSize: 18, color: Colors.blueAccent),
+
+                        //--------------HEIGHT------------------
+                        Card(
+                          child: ListTile(
+                              leading: Icon(
+                                Icons.nature_people,
+                                size: 40,
+                                color: Colors.blueAccent,
+                              ),
+                              title: Text(
+                                "Chiều cao (m)",
+                                style: TextStyle(
+                                    fontSize: 18, color: Colors.blueAccent),
+                              ),
+                              subtitle: Text(
+                                userFake.height ?? "null" + " m",
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              trailing: IconButton(
+                                  icon: Icon(Icons.edit),
+                                  onPressed: () {
+                                    showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return AlertDialog(
+                                            title: Text("Chiều cao"),
+                                            content: TextField(
+                                              autofocus: true,
+                                              controller: _heightController,
+                                            ),
+                                            actions: <Widget>[
+                                              MaterialButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    userFake.height =
+                                                        _heightController.text;
+                                                  });
+                                                  Navigator.of(context)
+                                                      .pop(context);
+                                                },
+                                                child: Text(
+                                                  "Lưu",
+                                                  style: TextStyle(
+                                                      color: Colors.blue),
+                                                ),
+                                              ),
+                                              MaterialButton(
+                                                onPressed: () {
+                                                  Navigator.of(context)
+                                                      .pop(context);
+                                                },
+                                                child: Text(
+                                                  "Thoát",
+                                                  style: TextStyle(
+                                                      color: Colors.blue),
+                                                ),
+                                              )
+                                            ],
+                                          );
+                                        });
+                                  })),
                         ),
-                        subtitle: Text(
-                          user.userData.name,
-                          style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        trailing: _allowEdit ? IconButton(
-                            icon: Icon(Icons.edit),
-                            onPressed: () {
-                              showDialog(context: context,
-                                  builder: (context){
-                                    return AlertDialog(
-                                      title: Text("Họ Tên"),
-                                      content: TextField(
-                                        controller: _nameController,
-                                      ),
-                                      actions: <Widget>[
-                                        MaterialButton(
-                                          onPressed: (){
-                                            user.setName(_nameController.text);
-                                            Navigator.of(context).pop(context);
-                                          },
-                                          child: Text("Lưu",
-                                            style: TextStyle(color: Colors.blue),
-                                          ),
-                                        ),
-                                        MaterialButton(
-                                          onPressed: (){
-                                            _nameController.text = user.userData.name;
-                                            Navigator.of(context).pop(context);
-                                          },
-                                          child: Text("Thoát",
-                                            style: TextStyle(color: Colors.blue),
-                                          ),
-                                        )
-                                      ],
-                                    );
-                                  });
-                            }): null
+                      ],
                     ),
                   ),
-
-                  //--------------PHONE------------------
-                  Card(
-                    child: ListTile(
-                        leading: Icon(
-                          Icons.phone,
-                          size: 40,
-                          color: Colors.blueAccent,
-                        ),
-                        title: Text(
-                          "Điện thoại",
-                          style: TextStyle(
-                              fontSize: 18, color: Colors.blueAccent),
-                        ),
-                        subtitle: Text(
-                          user.userData.phone,
-                          style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        trailing: _allowEdit ? IconButton(
-                            icon: Icon(Icons.edit),
-                            onPressed: () {
-                              showDialog(context: context,
-                                  builder: (context){
-                                    return AlertDialog(
-                                      title: Text("Điện thoại"),
-                                      content: TextField(
-                                        controller: _phoneController,
-                                      ),
-                                      actions: <Widget>[
-                                        MaterialButton(
-                                          onPressed: (){
-                                            user.setPhone(_phoneController.text);
-                                            Navigator.of(context).pop(context);
-                                          },
-                                          child: Text("Lưu",
-                                            style: TextStyle(color: Colors.blue),
-                                          ),
-                                        ),
-                                        MaterialButton(
-                                          onPressed: (){
-                                            _phoneController.text = user.userData.phone;
-                                            Navigator.of(context).pop(context);
-                                          },
-                                          child: Text("Thoát",
-                                            style: TextStyle(color: Colors.blue),
-                                          ),
-                                        )
-                                      ],
-                                    );
-                                  });
-
-                            }): null
-                    ),
-                  ),
-
-                  //--------------WEIGHT------------------
-                  Card(
-                    child: ListTile(
-                        leading: Icon(
-                          Icons.accessibility,
-                          size: 40,
-                          color: Colors.blueAccent,
-                        ),
-                        title: Text(
-                          "Cân nặng",
-                          style: TextStyle(
-                              fontSize: 18, color: Colors.blueAccent),
-                        ),
-                        subtitle: Text(
-                          user.userData.weight + " kg",
-                          style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        trailing: _allowEdit ? IconButton(
-                            icon: Icon(Icons.edit),
-                            onPressed: () {
-                              showDialog(context: context,
-                                  builder: (context){
-                                    return AlertDialog(
-                                      title: Text("Cân nặng"),
-                                      content: TextField(
-                                        controller: _weightController,
-                                      ),
-                                      actions: <Widget>[
-                                        MaterialButton(
-                                          onPressed: (){
-                                            user.setWeight(_weightController.text);
-                                            Navigator.of(context).pop(context);
-                                          },
-                                          child: Text("Lưu",
-                                            style: TextStyle(color: Colors.blue),
-                                          ),
-                                        ),
-                                        MaterialButton(
-                                          onPressed: (){
-                                            _weightController.text = user.userData.weight;
-                                            Navigator.of(context).pop(context);
-                                          },
-                                          child: Text("Thoát",
-                                            style: TextStyle(color: Colors.blue),
-                                          ),
-                                        )
-                                      ],
-                                    );
-                                  });
-
-                            }): null
-                    ),
-                  ),
-
-                  //--------------HEIGHT------------------
-                  Card(
-                    child: ListTile(
-                        leading: Icon(
-                          Icons.nature_people,
-                          size: 40,
-                          color: Colors.blueAccent,
-                        ),
-                        title: Text(
-                          "Chiều cao",
-                          style: TextStyle(
-                              fontSize: 18, color: Colors.blueAccent),
-                        ),
-                        subtitle: Text(
-                          user.userData.height + " m",
-                          style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        trailing: _allowEdit ? IconButton(
-                            icon: Icon(Icons.edit),
-                            onPressed: () {
-                              showDialog(context: context,
-                                  builder: (context){
-                                    return AlertDialog(
-                                      title: Text("Chiều cao"),
-                                      content: TextField(
-                                        controller: _heightController,
-                                      ),
-                                      actions: <Widget>[
-                                        MaterialButton(
-                                          onPressed: (){
-                                            user.setHeight(_heightController.text);
-                                            Navigator.of(context).pop(context);
-                                          },
-                                          child: Text("Lưu",
-                                            style: TextStyle(color: Colors.blue),
-                                          ),
-                                        ),
-                                        MaterialButton(
-                                          onPressed: (){
-                                            _heightController.text = user.userData.height;
-                                            Navigator.of(context).pop(context);
-                                          },
-                                          child: Text("Thoát",
-                                            style: TextStyle(color: Colors.blue),
-                                          ),
-                                        )
-                                      ],
-                                    );
-                                  });
-
-                            }): null
-                    ),
-                  ),
-
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: _allowEdit ? Container(
+      bottomNavigationBar: Container(
         padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
         decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.black54,
-                Colors.blue,
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            )
+          color: kColorOrange,
         ),
         height: 50,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-
             //--------BUTTON SAVE--------------
             SizedBox(
               height: 50,
               width: 150,
               child: RaisedButton(
                 color: Colors.green,
-                child: Text("LƯU",style: TextStyle(color: Colors.white,fontSize: 18, fontWeight: FontWeight.bold),),
-                onPressed: (){
-                  if(_imageAvt!=null)
-                    uploadAvt(context);
-                  if(_imageCover!=null)
-                    uploadCover(context);
-                  user.updateDataUser(_uid,_nameController.text,
+                child: Text(
+                  "LƯU",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold),
+                ),
+                onPressed: () {
+                  if (_imageAvt != null) uploadAvt(context);
+                  if (_imageCover != null) uploadCover(context);
+                  user.updateDataUser(
+                      _uid,
+                      _nameController.text,
                       _phoneController.text,
                       _weightController.text,
                       _heightController.text);
-                  setState(() {
-                    _allowEdit = false;
-                  });
                 },
               ),
             ),
@@ -531,19 +578,25 @@ class _EditProfileState extends State<EditProfile> {
               width: 150,
               child: RaisedButton(
                 color: Colors.red,
-                child: Text("HỦY",style: TextStyle(color: Colors.white,fontSize: 18, fontWeight: FontWeight.bold),),
-                onPressed: (){
+                child: Text(
+                  "HỦY",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold),
+                ),
+                onPressed: () {
                   setState(() {
                     _imageAvt = null;
                     _imageCover = null;
-                    _allowEdit = false;
+                    Navigator.pop(context);
                   });
                 },
               ),
             ),
           ],
         ),
-      ): null,
+      ),
     );
   }
 }

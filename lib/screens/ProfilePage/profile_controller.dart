@@ -42,7 +42,8 @@ class ProfileController extends GetxController {
         .getDocuments();
     Firestore.instance
         .collection('friends')
-        .document(find.documents.first.documentID);
+        .document(find.documents.first.documentID)
+        .delete();
   }
 
   Future<List<String>> getFollowing(String followerId) async {
