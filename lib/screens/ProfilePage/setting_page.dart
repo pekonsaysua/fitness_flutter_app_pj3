@@ -24,13 +24,20 @@ class _SettingPageState extends State<SettingPage> {
         children: [
           FlatButton(
               onPressed: () async {
+                showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        content: CircularProgressIndicator(),
+                      );
+                    });
                 await signOut();
-                StorageUtil.clear();
+                await StorageUtil.clear();
                 Navigator.pushNamedAndRemoveUntil(
-                    context, 'splash_screen', (route) => false);
+                    context, 'intro_screen', (route) => false);
               },
               child: Container(
-                child: Text("Dang xuat"),
+                child: Text("Đăng xuất"),
               ))
         ],
       ),

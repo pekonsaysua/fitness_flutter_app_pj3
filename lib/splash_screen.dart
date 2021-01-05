@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:fitness_app/helpers/shared_preferrence.dart';
 import 'package:flutter/cupertino.dart';
 
-
 class SplashScreen extends StatefulWidget {
   @override
   _SplashScreenState createState() => _SplashScreenState();
@@ -13,14 +12,14 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     delay().then((viewLink) {
-      Navigator.pushNamed(context, viewLink);
+      Navigator.pushNamedAndRemoveUntil(context, viewLink, (route) => false);
     });
   }
 
   Future<String> delay() async {
     String viewLink = 'intro_screen';
     StorageUtil.getIsLogging().then((result) async {
-      if (result==null || result == false) {
+      if (result == null || result == false) {
         viewLink = 'intro_screen';
       } else {
         viewLink = 'main_screen';
@@ -53,5 +52,3 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
-
-

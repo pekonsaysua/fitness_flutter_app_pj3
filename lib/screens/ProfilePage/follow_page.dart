@@ -137,7 +137,7 @@ class _FollowerAndFollowingListState extends State<FollowerAndFollowingList>
                             context,
                             MaterialPageRoute(
                               builder: (context) => ProfilePage(
-                                userData: user,
+                                userId: user.id,
                               ),
                             ),
                           );

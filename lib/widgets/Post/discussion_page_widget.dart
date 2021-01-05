@@ -193,7 +193,7 @@ class _DiscussionPageState extends State<DiscussionPage> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) => ProfilePage(
-                                            userData: com.poster,
+                                            userId: com.poster.id,
                                           ),
                                         ),
                                       );

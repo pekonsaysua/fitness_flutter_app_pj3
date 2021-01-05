@@ -17,7 +17,7 @@ class _ExplorePageState extends State<ExplorePage>
   void initState() {
     // TODO: implement initState
     super.initState();
-    _tabController = TabController(vsync: this, length: 4);
+    _tabController = TabController(vsync: this, length: 3);
   }
 
   @override
@@ -29,7 +29,7 @@ class _ExplorePageState extends State<ExplorePage>
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 4,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: kColorOrange,
@@ -62,19 +62,20 @@ class _ExplorePageState extends State<ExplorePage>
               Tab(
                 text: "CLUB",
               ),
-              Tab(
-                text: "SEGMENTS",
-              ),
             ],
           ),
         ),
         body: new TabBarView(controller: _tabController, children: [
           Scaffold(
+            body: Container(),
+          ),
+          Scaffold(
+            backgroundColor: Colors.grey[200],
             body: ChallengesPage(),
           ),
-          Scaffold(body: ClubPage(),),
-          Scaffold(),
-          Scaffold(),
+          Scaffold(
+            body: ClubPage(),
+          ),
         ]),
       ),
     );

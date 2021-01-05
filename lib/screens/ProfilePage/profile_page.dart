@@ -1,9 +1,13 @@
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:fitness_app/apis/api.dart';
 import 'package:fitness_app/helpers/colors_constant.dart';
+import 'package:fitness_app/helpers/parse_date_helpers.dart';
 import 'package:fitness_app/helpers/shared_preferrence.dart';
+import 'package:fitness_app/models/challenge.dart';
 import 'package:fitness_app/models/user.dart';
+import 'package:fitness_app/screens/ExplorePage/challenges_page.dart';
 import 'package:fitness_app/screens/ProfilePage/follow_page.dart';
 import 'package:fitness_app/screens/ProfilePage/profile_controller.dart';
 import 'package:fitness_app/screens/ProfilePage/statistic_page.dart';
@@ -16,9 +20,9 @@ import 'package:provider/provider.dart';
 import 'package:fitness_app/provider/user_provider.dart';
 
 class ProfilePage extends StatefulWidget {
-  final UserData userData;
+  final String userId;
 
-  const ProfilePage({Key key, this.userData}) : super(key: key);
+  const ProfilePage({Key key, this.userId}) : super(key: key);
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
@@ -27,6 +31,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage>
     with AutomaticKeepAliveClientMixin {
   UserData myProfile;
+  UserData userData;
 
   UserData user = new UserData.empty();
 
@@ -37,6 +42,8 @@ class _ProfilePageState extends State<ProfilePage>
 
   List<String> followerList = new List();
   List<String> followingList = new List();
+
+  List<ChallengeModel> challengeList = new List();
 
   @override
   void initState() {
@@ -54,16 +61,22 @@ class _ProfilePageState extends State<ProfilePage>
     profileController = new ProfileController();
 
     myProfile = await StorageUtil.getUserInfo();
+    if (widget.userId != null) {
+      userData = await Api.getUserApi(widget.userId);
+      user = userData;
+    } else
+      user = myProfile;
 
-    user = widget.userData ?? myProfile;
-    print(myProfile.id + ", " + user.id);
+    print(user.id + "," + myProfile.id);
+
     if (user.id != myProfile.id) {
-      isFollow = await profileController.checkFollower(
-          myProfile.id, widget.userData.id);
+      isFollow = await profileController.checkFollower(myProfile.id, user.id);
     }
 
     followerList = await profileController.getFollower(user.id);
     followingList = await profileController.getFollowing(user.id);
+
+    challengeList = await Api.getListChallengeApi(user.id, true);
   }
 
   @override
@@ -72,7 +85,7 @@ class _ProfilePageState extends State<ProfilePage>
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
         backgroundColor: kColorOrange,
-        automaticallyImplyLeading: widget.userData != null,
+        automaticallyImplyLeading: widget.userId != null,
         title: Text("Trang cá nhân"),
         actions: [
           isLoading
@@ -100,17 +113,17 @@ class _ProfilePageState extends State<ProfilePage>
           )
         ],
       ),
-      body: isLoading
-          ? Container(
-              color: kColorWhite,
-              child: Center(
-                child: CircularProgressIndicator(),
-              ),
-            )
-          : SingleChildScrollView(
-              padding: EdgeInsets.all(0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: RefreshIndicator(
+        onRefresh: init,
+        child: isLoading
+            ? Container(
+                color: kColorWhite,
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            : ListView(
+                shrinkWrap: true,
                 children: [
                   Container(
                     color: kColorWhite,
@@ -264,8 +277,7 @@ class _ProfilePageState extends State<ProfilePage>
                                           textColor: kColorWhite,
                                           onPressed: () async {
                                             await profileController.setFollow(
-                                                myProfile.id,
-                                                widget.userData.id);
+                                                myProfile.id, widget.userId);
                                             setState(() {
                                               isFollow = true;
                                             });
@@ -362,79 +374,87 @@ class _ProfilePageState extends State<ProfilePage>
                                 style: TextStyle(
                                     fontSize: 18, fontWeight: FontWeight.bold),
                               ),
-                              Text("1"),
+                              Text(challengeList.length.toString()),
                             ],
                           ),
                         ),
-                        Container(
-                          height: 100.0,
-                          padding: EdgeInsets.only(bottom: 20, left: 15),
-                          child: ListView(
-                            shrinkWrap: true,
-                            physics: ScrollPhysics(),
-                            scrollDirection: Axis.horizontal,
-                            children: [
-                              FlatButton(
-                                padding: EdgeInsets.all(0),
-                                onPressed: () {},
-                                child: Card(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10)),
-                                  elevation: 1,
-                                  child: Container(
-                                    height: 100,
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.9,
-                                    child: ListTile(
-                                      leading: Icon(Icons.padding),
-                                      title: Text("Thu thach chay thang 12"),
-                                      subtitle: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text("50km"),
-                                          Text("Con 1 ngay"),
-                                        ],
+                        if (challengeList.isNotEmpty)
+                          Container(
+                              height: 100.0,
+                              padding: EdgeInsets.only(bottom: 20, left: 15),
+                              child: ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: ScrollPhysics(),
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: challengeList.length,
+                                  itemBuilder: (context, index) {
+                                    var chal = challengeList[index];
+                                    return FlatButton(
+                                      padding: EdgeInsets.all(0),
+                                      onPressed: () {},
+                                      child: Card(
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10)),
+                                        elevation: 1,
+                                        child: Container(
+                                          height: 100,
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.9,
+                                          child: ListTile(
+                                            leading: Icon(Icons.padding),
+                                            title: Text(chal.name),
+                                            subtitle: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                if (chal.target.step != null)
+                                                  Text(chal.target.step),
+                                                if (chal.target.distance !=
+                                                    null)
+                                                  Text(chal.target.distance),
+                                                if (chal.target.calo != null)
+                                                  Text(chal.target.calo),
+                                                if (chal.target.time != null)
+                                                  Text(chal.target.time),
+                                                Text("Còn" +
+                                                    (-ParseDate.getDay(
+                                                            chal.end))
+                                                        .toString() +
+                                                    "ngày"),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              FlatButton(
-                                padding: EdgeInsets.all(0),
-                                onPressed: () {},
-                                child: Card(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10)),
-                                  elevation: 1,
-                                  child: Container(
-                                    height: 100,
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.9,
-                                    child: ListTile(
-                                      leading: Icon(Icons.padding),
-                                      title: Text("Thu thach chay thang 12"),
-                                      subtitle: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text("50km"),
-                                          Text("Con 1 ngay"),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                                    );
+                                  })),
                         FlatButton(
                             shape: Border(
                               top: BorderSide(color: kColorGrey, width: 0.5),
                             ),
                             padding: EdgeInsets.all(0),
-                            onPressed: () {},
+                            onPressed: challengeList.isEmpty
+                                ? null
+                                : () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => Scaffold(
+                                                  appBar: AppBar(
+                                                    backgroundColor:
+                                                        kColorOrange,
+                                                    title: Text(
+                                                        "Tất cả thử thách"),
+                                                  ),
+                                                  body: ChallengesPage(
+                                                    userId: user.id,
+                                                  ),
+                                                )));
+                                  },
                             child: ListTile(
                               leading: Text("Tất cả"),
                               trailing: Icon(Icons.arrow_forward_ios),
@@ -540,7 +560,7 @@ class _ProfilePageState extends State<ProfilePage>
                   ),
                 ],
               ),
-            ),
+      ),
     );
   }
 

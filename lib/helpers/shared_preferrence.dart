@@ -67,8 +67,8 @@ class StorageUtil {
       doc['email'],
       doc['phone'],
       doc['pass'],
-      doc['height'],
       doc['weight'],
+      doc['height'],
       doc['url_avt'],
       doc['url_cover'],
     );

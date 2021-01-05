@@ -65,7 +65,7 @@ class _PostWidgetState extends State<PostWidget> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => ProfilePage(
-                          userData: widget.post.user,
+                          userId: widget.post.user.id,
                         ),
                       ),
                     );

@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fitness_app/helpers/parse_date_helpers.dart';
 import 'package:fitness_app/helpers/shared_preferrence.dart';
+import 'package:fitness_app/models/challenge.dart';
 import 'package:fitness_app/models/data_count.dart';
 import 'package:fitness_app/models/post.dart';
 import 'package:fitness_app/models/user.dart';
@@ -35,9 +37,7 @@ class Api {
     List<PostModel> listPost = new List();
     var value;
     if (userId == null)
-      value = await Firestore.instance
-          .collection('posts')
-          .getDocuments();
+      value = await Firestore.instance.collection('posts').getDocuments();
     else
       value = await Firestore.instance
           .collection('posts')
@@ -188,5 +188,155 @@ class Api {
       list.add(json["followerId"]);
     }
     return list;
+  }
+
+  static Future<List<ChallengeModel>> getListChallengeApi(String userId,
+      [bool isJoin]) async {
+    List<ChallengeModel> list = new List();
+    String myId = await StorageUtil.getUid();
+
+    if (userId != myId) {
+      var doc = await Firestore.instance
+          .collection("users_challenges")
+          .where("uid", isEqualTo: userId)
+          .getDocuments();
+      if (doc.documents.isNotEmpty) {
+        for (var value in doc.documents) {
+          Map<String, dynamic> json = value.data;
+          ChallengeModel challengeModel;
+          challengeModel = await getChallengeApi(json["challengeId"]);
+          list.add(challengeModel);
+        }
+      }
+    } else {
+      var doc =
+          await Firestore.instance.collection("challenges").getDocuments();
+      if (doc.documents.isNotEmpty) {
+        for (var value in doc.documents) {
+          Map<String, dynamic> json = value.data;
+          ChallengeModel challengeModel;
+          challengeModel = new ChallengeModel.fromJson(json);
+          challengeModel.isJoin = await checkJoinChallenge(myId, json["id"]);
+          if (challengeModel.isJoin == isJoin) list.add(challengeModel);
+        }
+      }
+    }
+    return list;
+  }
+
+  static Future<ChallengeModel> getChallengeApi(String challengeId) async {
+    String myId = await StorageUtil.getUid();
+    var doc = await Firestore.instance
+        .collection("challenges")
+        .document(challengeId)
+        .get();
+    Map<String, dynamic> json = doc.data;
+
+    ChallengeModel challengeModel;
+    challengeModel = new ChallengeModel.fromJson(json);
+    challengeModel.isJoin = await checkJoinChallenge(myId, json["id"]);
+
+    return challengeModel;
+  }
+
+  static Future<List<ChallengeModel>> getListChallengeOfUserApi(
+      String userId) async {
+    List<ChallengeModel> list = new List();
+    var doc = await Firestore.instance
+        .collection("users_challenges")
+        .where("uid", isEqualTo: userId)
+        .getDocuments();
+    for (var value in doc.documents) {
+      Map<String, dynamic> json = value.data;
+
+      var doc2 = await Firestore.instance
+          .collection("challenges")
+          .document(json["challengeId"])
+          .get();
+      Map<String, dynamic> json2 = doc2.data;
+      ChallengeModel challengeModel = new ChallengeModel.fromJson(json2);
+      list.add(challengeModel);
+    }
+    return list;
+  }
+
+  static Future<void> setJoinChallenge(
+      String userId, String challengeId) async {
+    Firestore.instance.collection("users_challenges").add({
+      "uid": userId,
+      "challengeId": challengeId,
+      "created": DateTime.now().toString()
+    });
+  }
+
+  static Future<void> setUnJoinChallenge(
+      String userId, String challengeId) async {
+    var doc = await Firestore.instance
+        .collection("users_challenges")
+        .where("uid", isEqualTo: userId)
+        .where("challengeId", isEqualTo: challengeId)
+        .getDocuments();
+    Firestore.instance
+        .collection("users_challenges")
+        .document(doc.documents.first.documentID)
+        .delete();
+  }
+
+  static Future<bool> checkJoinChallenge(
+      String userId, String challengeId) async {
+    var doc = await Firestore.instance
+        .collection("users_challenges")
+        .where("uid", isEqualTo: userId)
+        .where("challengeId", isEqualTo: challengeId)
+        .getDocuments();
+    return doc.documents.isNotEmpty;
+  }
+
+  //TODO : THONG KE
+  static Future<Map<String, dynamic>> getStatsApi(String uid, [int day]) async {
+    List<DataCount> list = new List();
+
+    var doc = await Firestore.instance
+        .collection("posts")
+        .where("uid", isEqualTo: uid)
+        .getDocuments();
+    if (doc.documents.isNotEmpty) {
+      for (var i in doc.documents) {
+        Map<String, dynamic> json = i.data;
+        DataCount dataCount = DataCount.fromJson(json["activity"]);
+        if (day == null)
+          list.add(dataCount);
+        else if (ParseDate.getDay(dataCount.date) <= day) list.add(dataCount);
+      }
+    }
+    var distance = 0.0;
+    var calo = 0.0;
+    var step = 0;
+    var second = 0;
+    var minute = 0;
+    var hour = 0;
+    var time = "00:00";
+    for (var dataCount in list) {
+      distance = distance + double.parse(dataCount.distance);
+      calo = calo + double.parse(dataCount.calories);
+      step = step + int.parse(dataCount.step);
+      var a = dataCount.time.split(":");
+      second = second + int.parse(a.last);
+      minute = minute + int.parse(a.first);
+    }
+    if ((second - second % 60) != 0) minute = minute + 1;
+    if ((minute - minute % 60) != 0) hour = hour + 1;
+    second = second % 60;
+    time = (hour == 0 ? "" : hour.toString() + "h") +
+        (minute == 0 ? "" : minute.toString() + "m") +
+        second.toString() +
+        "s";
+    return {
+      "count": list.length.toString(),
+      "distance": distance.toString(),
+      "calo": calo.toString(),
+      "step": step.toString(),
+      "time": time
+    };
   }
 }

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fitness_app/helpers/colors_constant.dart';
 import 'package:fitness_app/helpers/shared_preferrence.dart';
 import 'package:fitness_app/models/post.dart';
@@ -58,7 +59,28 @@ class _FeedPageState extends State<FeedPage>
               icon: const Icon(Icons.people_outline),
               color: kColorWhite,
               tooltip: 'Find Friends',
-              onPressed: () {},
+              onPressed: () async {
+
+                /*
+
+                var doc =
+                    await Firestore.instance.collection("challenges").add({
+                  "begin": DateTime.now().toString(),
+                  "end": DateTime.utc(2021, 1, 31, 23, 59, 59).toString(),
+                  "target": {"calo": "2000"},
+                  "name": "Thử thách chạy bộ tháng 1",
+                  "description":
+                      "Chào mừng các bạn đến với thử thách chạy tháng 1, các bạn tiêu thụ 2000 calo để hoàn thành thử thách này",
+                });
+                Firestore.instance
+                    .collection("challenges")
+                    .document(doc.documentID)
+                    .updateData({
+                  "id": doc.documentID,
+                });
+
+                 */
+              },
             ),
             SizedBox(
               width: 15,

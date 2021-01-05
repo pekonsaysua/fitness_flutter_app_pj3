@@ -109,456 +109,77 @@ class _EditProfileState extends State<EditProfile> {
       });
     }
 
-    return Scaffold(
-      key: _key,
-      appBar: AppBar(
-        backgroundColor: kColorOrange,
-        title: Text("Chỉnh sửa thông tin cá nhân"),
-        leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              if (true) {
-                showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: Text("Thông báo"),
-                        content: Text("Bạn sẽ thoát và không lưu?"),
-                        actions: <Widget>[
-                          MaterialButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, 'main_screen');
-                            },
-                            child: Text(
-                              "Thoát",
-                              style: TextStyle(color: Colors.blue),
-                            ),
-                          ),
-                          MaterialButton(
-                            onPressed: () {
-                              setState(() {
-                                _imageAvt = null;
-                                _imageCover = null;
-                              });
-                              Navigator.pushNamed(context, 'main_screen');
-                            },
-                            child: Text(
-                              "Đồng ý",
-                              style: TextStyle(color: Colors.blue),
-                            ),
-                          )
-                        ],
-                      );
-                    });
-              } else
-                Navigator.pop(context);
-            }),
-        actions: <Widget>[
-        ],
-      ),
-      body: isLoading
-          ? Container(
-              child: Center(
-                child: CircularProgressIndicator(),
-              ),
-            )
-          : Container(
-              child: ListView(
-                children: <Widget>[
-                  Stack(
-                    children: <Widget>[
-                      //----------COVER----------
-                      Stack(
-                        alignment: Alignment.topRight,
-                        children: <Widget>[
-                          Container(
-                              width: MediaQuery.of(context).size.width,
-                              height: 250,
-                              color: Colors.white,
-                              child: (_imageCover != null)
-                                  ? Image.file(
-                                      _imageCover,
-                                      fit: BoxFit.fill,
-                                    )
-                                  : Image.network(
-                                      coverUrl ?? triAva,
-                                      fit: BoxFit.fill,
-                                    )),
-                          Container(
-                            height: 40,
-                            width: 40,
-                            color: true ? Colors.black38 : Colors.transparent,
-                            child: IconButton(
-                              icon: Icon(
-                                Icons.add_a_photo,
-                                color: true ? Colors.white : Colors.transparent,
-                              ),
-                              onPressed: () {
-                                getImageCover();
-                              },
-                            ),
-                          ),
-                        ],
+    Future<bool> _onBackPressed() {
+      return showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: Text("Lưu thay đổi"),
+                  content: Text("Bạn sẽ thoát và không lưu?"),
+                  actions: <Widget>[
+                    MaterialButton(
+                      onPressed: () {
+                        setState(() {
+                          _imageAvt = null;
+                          _imageCover = null;
+                        });
+                        Navigator.of(context).pop(true);
+                      },
+                      child: Text(
+                        "Thoát",
+                        style: TextStyle(color: Colors.blue),
                       ),
-
-                      //-------AVATAR----------
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(5, 150, 0, 0),
-                        child: Stack(
-                          alignment: Alignment.bottomCenter,
-                          children: <Widget>[
-                            ClipOval(
-                                child: SizedBox(
-                                    width: 120,
-                                    height: 120,
-                                    child: (_imageAvt != null)
-                                        ? Image.file(
-                                            _imageAvt,
-                                            fit: BoxFit.fill,
-                                          )
-                                        : Image.network(
-                                            avtUrl ?? triAva,
-                                            fit: BoxFit.fill,
-                                          ))),
-                            Container(
-                              height: 30,
-                              width: 30,
-                              decoration: BoxDecoration(
-                                color:
-                                    true ? Colors.black38 : Colors.transparent,
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.add_a_photo,
-                                  color:
-                                      true ? Colors.white : Colors.transparent,
-                                  size: 15,
-                                ),
-                                onPressed: () {
-                                  getImageAvt();
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        //--------------EMAIL------------------
-                        Card(
-                            child: ListTile(
-                          leading: Icon(
-                            Icons.email,
-                            size: 40,
-                            color: Colors.blueAccent,
-                          ),
-                          title: Text(
-                            "Email",
-                            style: TextStyle(
-                                fontSize: 18, color: Colors.blueAccent),
-                          ),
-                          subtitle: Text(
-                            userFake.email ?? "null",
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        )),
-
-                        //--------------NAME------------------
-                        Card(
-                          child: ListTile(
-                              leading: Icon(
-                                Icons.person,
-                                size: 40,
-                                color: Colors.blueAccent,
-                              ),
-                              title: Text(
-                                "Họ Tên",
-                                style: TextStyle(
-                                    fontSize: 18, color: Colors.blueAccent),
-                              ),
-                              subtitle: Text(
-                                userFake.name,
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              trailing: IconButton(
-                                  icon: Icon(Icons.edit),
-                                  onPressed: () {
-                                    showDialog(
-                                        context: context,
-                                        builder: (context) {
-                                          return AlertDialog(
-                                            title: Text("Họ Tên"),
-                                            content: TextField(
-                                              autofocus: true,
-                                              controller: _nameController,
-                                            ),
-                                            actions: <Widget>[
-                                              MaterialButton(
-                                                onPressed: () {
-                                                  setState(() {
-                                                    userFake.name =
-                                                        _nameController.text;
-                                                  });
-                                                  Navigator.of(context)
-                                                      .pop(context);
-                                                },
-                                                child: Text(
-                                                  "Lưu",
-                                                  style: TextStyle(
-                                                      color: Colors.blue),
-                                                ),
-                                              ),
-                                              MaterialButton(
-                                                onPressed: () {
-                                                  Navigator.of(context)
-                                                      .pop(context);
-                                                },
-                                                child: Text(
-                                                  "Thoát",
-                                                  style: TextStyle(
-                                                      color: Colors.blue),
-                                                ),
-                                              )
-                                            ],
-                                          );
-                                        });
-                                  })),
-                        ),
-
-                        //--------------PHONE------------------
-                        Card(
-                          child: ListTile(
-                              leading: Icon(
-                                Icons.phone,
-                                size: 40,
-                                color: Colors.blueAccent,
-                              ),
-                              title: Text(
-                                "Điện thoại",
-                                style: TextStyle(
-                                    fontSize: 18, color: Colors.blueAccent),
-                              ),
-                              subtitle: Text(
-                                userFake.phone ?? "null",
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              trailing: IconButton(
-                                  icon: Icon(Icons.edit),
-                                  onPressed: () {
-                                    showDialog(
-                                        context: context,
-                                        builder: (context) {
-                                          return AlertDialog(
-                                            title: Text("Điện thoại"),
-                                            content: TextField(
-                                              autofocus: true,
-                                              controller: _phoneController,
-                                            ),
-                                            actions: <Widget>[
-                                              MaterialButton(
-                                                onPressed: () {
-                                                  setState(() {
-                                                    userFake.phone =
-                                                        _phoneController.text;
-                                                  });
-                                                  Navigator.of(context)
-                                                      .pop(context);
-                                                },
-                                                child: Text(
-                                                  "Lưu",
-                                                  style: TextStyle(
-                                                      color: Colors.blue),
-                                                ),
-                                              ),
-                                              MaterialButton(
-                                                onPressed: () {
-                                                  Navigator.of(context)
-                                                      .pop(context);
-                                                },
-                                                child: Text(
-                                                  "Thoát",
-                                                  style: TextStyle(
-                                                      color: Colors.blue),
-                                                ),
-                                              )
-                                            ],
-                                          );
-                                        });
-                                  })),
-                        ),
-
-                        //--------------WEIGHT------------------
-                        Card(
-                          child: ListTile(
-                              leading: Icon(
-                                Icons.accessibility,
-                                size: 40,
-                                color: Colors.blueAccent,
-                              ),
-                              title: Text(
-                                "Cân nặng (kg)",
-                                style: TextStyle(
-                                    fontSize: 18, color: Colors.blueAccent),
-                              ),
-                              subtitle: Text(
-                                userFake.weight ?? "null" + " kg",
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              trailing: IconButton(
-                                  icon: Icon(Icons.edit),
-                                  onPressed: () {
-                                    showDialog(
-                                        context: context,
-                                        builder: (context) {
-                                          return AlertDialog(
-                                            title: Text("Cân nặng"),
-                                            content: TextField(
-                                              autofocus: false,
-                                              controller: _weightController,
-                                            ),
-                                            actions: <Widget>[
-                                              MaterialButton(
-                                                onPressed: () {
-                                                  setState(() {
-                                                    userFake.weight =
-                                                        _weightController.text;
-                                                  });
-                                                  Navigator.of(context)
-                                                      .pop(context);
-                                                },
-                                                child: Text(
-                                                  "Lưu",
-                                                  style: TextStyle(
-                                                      color: Colors.blue),
-                                                ),
-                                              ),
-                                              MaterialButton(
-                                                onPressed: () {
-                                                  Navigator.of(context)
-                                                      .pop(context);
-                                                },
-                                                child: Text(
-                                                  "Thoát",
-                                                  style: TextStyle(
-                                                      color: Colors.blue),
-                                                ),
-                                              )
-                                            ],
-                                          );
-                                        });
-                                  })),
-                        ),
-
-                        //--------------HEIGHT------------------
-                        Card(
-                          child: ListTile(
-                              leading: Icon(
-                                Icons.nature_people,
-                                size: 40,
-                                color: Colors.blueAccent,
-                              ),
-                              title: Text(
-                                "Chiều cao (m)",
-                                style: TextStyle(
-                                    fontSize: 18, color: Colors.blueAccent),
-                              ),
-                              subtitle: Text(
-                                userFake.height ?? "null" + " m",
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              trailing: IconButton(
-                                  icon: Icon(Icons.edit),
-                                  onPressed: () {
-                                    showDialog(
-                                        context: context,
-                                        builder: (context) {
-                                          return AlertDialog(
-                                            title: Text("Chiều cao"),
-                                            content: TextField(
-                                              autofocus: true,
-                                              controller: _heightController,
-                                            ),
-                                            actions: <Widget>[
-                                              MaterialButton(
-                                                onPressed: () {
-                                                  setState(() {
-                                                    userFake.height =
-                                                        _heightController.text;
-                                                  });
-                                                  Navigator.of(context)
-                                                      .pop(context);
-                                                },
-                                                child: Text(
-                                                  "Lưu",
-                                                  style: TextStyle(
-                                                      color: Colors.blue),
-                                                ),
-                                              ),
-                                              MaterialButton(
-                                                onPressed: () {
-                                                  Navigator.of(context)
-                                                      .pop(context);
-                                                },
-                                                child: Text(
-                                                  "Thoát",
-                                                  style: TextStyle(
-                                                      color: Colors.blue),
-                                                ),
-                                              )
-                                            ],
-                                          );
-                                        });
-                                  })),
-                        ),
-                      ],
                     ),
-                  ),
-                ],
-              ),
-            ),
-      bottomNavigationBar: Container(
-        padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
-        decoration: BoxDecoration(
-          color: kColorOrange,
-        ),
-        height: 50,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            //--------BUTTON SAVE--------------
-            SizedBox(
-              height: 50,
-              width: 150,
-              child: RaisedButton(
-                color: Colors.green,
-                child: Text(
-                  "LƯU",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold),
-                ),
+                    MaterialButton(
+                      onPressed: () {
+                        if (_imageAvt != null) uploadAvt(context);
+                        if (_imageCover != null) uploadCover(context);
+                        user.updateDataUser(
+                            _uid,
+                            _nameController.text,
+                            _phoneController.text,
+                            _weightController.text,
+                            _heightController.text);
+
+                        UserData newUser = new UserData(
+                            _uid,
+                            _nameController.text,
+                            userFake.email,
+                            _phoneController.text,
+                            "",
+                            _weightController.text,
+                            _heightController.text,
+                            avtUrl,
+                            coverUrl);
+
+                        StorageUtil.setUserInfo(newUser);
+                        Navigator.of(context).pop(false);
+                      },
+                      child: Text(
+                        "Lưu",
+                        style: TextStyle(color: Colors.blue),
+                      ),
+                    )
+                  ],
+                );
+              }) ??
+          false;
+    }
+
+    return WillPopScope(
+      onWillPop: _onBackPressed,
+      child: Scaffold(
+        key: _key,
+        appBar: AppBar(
+          backgroundColor: kColorOrange,
+          title: Text("Sửa thông tin cá nhân"),
+          leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.of(context).maybePop();
+              }),
+          actions: <Widget>[
+            FlatButton(
                 onPressed: () {
                   if (_imageAvt != null) uploadAvt(context);
                   if (_imageCover != null) uploadCover(context);
@@ -568,34 +189,413 @@ class _EditProfileState extends State<EditProfile> {
                       _phoneController.text,
                       _weightController.text,
                       _heightController.text);
-                },
-              ),
-            ),
 
-            //---------BUTTON CANCEL------------
-            SizedBox(
-              height: 50,
-              width: 150,
-              child: RaisedButton(
-                color: Colors.red,
-                child: Text(
-                  "HỦY",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold),
-                ),
-                onPressed: () {
-                  setState(() {
-                    _imageAvt = null;
-                    _imageCover = null;
-                    Navigator.pop(context);
-                  });
+                  UserData newUser = new UserData(
+                      _uid,
+                      _nameController.text,
+                      userFake.email,
+                      _phoneController.text,
+                      "",
+                      _weightController.text,
+                      _heightController.text,
+                      avtUrl,
+                      coverUrl);
+
+                  StorageUtil.setUserInfo(newUser);
+                  Navigator.of(context).pop(false);
                 },
-              ),
-            ),
+                child: Text(
+                  "Xong",
+                  style: TextStyle(color: kColorWhite),
+                ))
           ],
         ),
+        body: isLoading
+            ? Container(
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            : Container(
+                child: ListView(
+                  children: <Widget>[
+                    Stack(
+                      children: <Widget>[
+                        //----------COVER----------
+                        Stack(
+                          alignment: Alignment.topRight,
+                          children: <Widget>[
+                            Container(
+                                width: MediaQuery.of(context).size.width,
+                                height: 250,
+                                color: Colors.white,
+                                child: (_imageCover != null)
+                                    ? Image.file(
+                                        _imageCover,
+                                        fit: BoxFit.fill,
+                                      )
+                                    : Image.network(
+                                        coverUrl ?? triAva,
+                                        fit: BoxFit.fill,
+                                      )),
+                            Container(
+                              height: 40,
+                              width: 40,
+                              color: true ? Colors.black38 : Colors.transparent,
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.add_a_photo,
+                                  color:
+                                      true ? Colors.white : Colors.transparent,
+                                ),
+                                onPressed: () {
+                                  getImageCover();
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        //-------AVATAR----------
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(5, 150, 0, 0),
+                          child: Stack(
+                            alignment: Alignment.bottomCenter,
+                            children: <Widget>[
+                              ClipOval(
+                                  child: SizedBox(
+                                      width: 120,
+                                      height: 120,
+                                      child: (_imageAvt != null)
+                                          ? Image.file(
+                                              _imageAvt,
+                                              fit: BoxFit.fill,
+                                            )
+                                          : Image.network(
+                                              avtUrl ?? triAva,
+                                              fit: BoxFit.fill,
+                                            ))),
+                              Container(
+                                height: 30,
+                                width: 30,
+                                decoration: BoxDecoration(
+                                  color: true
+                                      ? Colors.black38
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: IconButton(
+                                  icon: Icon(
+                                    Icons.add_a_photo,
+                                    color: true
+                                        ? Colors.white
+                                        : Colors.transparent,
+                                    size: 15,
+                                  ),
+                                  onPressed: () {
+                                    getImageAvt();
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          //--------------EMAIL------------------
+                          Card(
+                              child: ListTile(
+                            leading: Icon(
+                              Icons.email,
+                              size: 40,
+                              color: Colors.blueAccent,
+                            ),
+                            title: Text(
+                              "Email",
+                              style: TextStyle(
+                                  fontSize: 18, color: Colors.blueAccent),
+                            ),
+                            subtitle: Text(
+                              userFake.email ?? "null",
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          )),
+
+                          //--------------NAME------------------
+                          Card(
+                            child: ListTile(
+                                leading: Icon(
+                                  Icons.person,
+                                  size: 40,
+                                  color: Colors.blueAccent,
+                                ),
+                                title: Text(
+                                  "Họ Tên",
+                                  style: TextStyle(
+                                      fontSize: 18, color: Colors.blueAccent),
+                                ),
+                                subtitle: Text(
+                                  userFake.name,
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                trailing: IconButton(
+                                    icon: Icon(Icons.edit),
+                                    onPressed: () {
+                                      showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                              title: Text("Họ Tên"),
+                                              content: TextField(
+                                                autofocus: true,
+                                                controller: _nameController,
+                                              ),
+                                              actions: <Widget>[
+                                                MaterialButton(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      userFake.name =
+                                                          _nameController.text;
+                                                    });
+                                                    Navigator.of(context)
+                                                        .pop(context);
+                                                  },
+                                                  child: Text(
+                                                    "Lưu",
+                                                    style: TextStyle(
+                                                        color: Colors.blue),
+                                                  ),
+                                                ),
+                                                MaterialButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context)
+                                                        .pop(context);
+                                                  },
+                                                  child: Text(
+                                                    "Thoát",
+                                                    style: TextStyle(
+                                                        color: Colors.blue),
+                                                  ),
+                                                )
+                                              ],
+                                            );
+                                          });
+                                    })),
+                          ),
+
+                          //--------------PHONE------------------
+                          Card(
+                            child: ListTile(
+                                leading: Icon(
+                                  Icons.phone,
+                                  size: 40,
+                                  color: Colors.blueAccent,
+                                ),
+                                title: Text(
+                                  "Điện thoại",
+                                  style: TextStyle(
+                                      fontSize: 18, color: Colors.blueAccent),
+                                ),
+                                subtitle: Text(
+                                  userFake.phone ?? "null",
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                trailing: IconButton(
+                                    icon: Icon(Icons.edit),
+                                    onPressed: () {
+                                      showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                              title: Text("Điện thoại"),
+                                              content: TextField(
+                                                autofocus: true,
+                                                controller: _phoneController,
+                                              ),
+                                              actions: <Widget>[
+                                                MaterialButton(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      userFake.phone =
+                                                          _phoneController.text;
+                                                    });
+                                                    Navigator.of(context)
+                                                        .pop(context);
+                                                  },
+                                                  child: Text(
+                                                    "Lưu",
+                                                    style: TextStyle(
+                                                        color: Colors.blue),
+                                                  ),
+                                                ),
+                                                MaterialButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context)
+                                                        .pop(context);
+                                                  },
+                                                  child: Text(
+                                                    "Thoát",
+                                                    style: TextStyle(
+                                                        color: Colors.blue),
+                                                  ),
+                                                )
+                                              ],
+                                            );
+                                          });
+                                    })),
+                          ),
+
+                          //--------------WEIGHT------------------
+                          Card(
+                            child: ListTile(
+                                leading: Icon(
+                                  Icons.accessibility,
+                                  size: 40,
+                                  color: Colors.blueAccent,
+                                ),
+                                title: Text(
+                                  "Cân nặng (kg)",
+                                  style: TextStyle(
+                                      fontSize: 18, color: Colors.blueAccent),
+                                ),
+                                subtitle: Text(
+                                  userFake.weight ?? "null" + " kg",
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                trailing: IconButton(
+                                    icon: Icon(Icons.edit),
+                                    onPressed: () {
+                                      showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                              title: Text("Cân nặng"),
+                                              content: TextField(
+                                                autofocus: false,
+                                                controller: _weightController,
+                                              ),
+                                              actions: <Widget>[
+                                                MaterialButton(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      userFake.weight =
+                                                          _weightController
+                                                              .text;
+                                                    });
+                                                    Navigator.of(context)
+                                                        .pop(context);
+                                                  },
+                                                  child: Text(
+                                                    "Lưu",
+                                                    style: TextStyle(
+                                                        color: Colors.blue),
+                                                  ),
+                                                ),
+                                                MaterialButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context)
+                                                        .pop(context);
+                                                  },
+                                                  child: Text(
+                                                    "Thoát",
+                                                    style: TextStyle(
+                                                        color: Colors.blue),
+                                                  ),
+                                                )
+                                              ],
+                                            );
+                                          });
+                                    })),
+                          ),
+
+                          //--------------HEIGHT------------------
+                          Card(
+                            child: ListTile(
+                                leading: Icon(
+                                  Icons.nature_people,
+                                  size: 40,
+                                  color: Colors.blueAccent,
+                                ),
+                                title: Text(
+                                  "Chiều cao (m)",
+                                  style: TextStyle(
+                                      fontSize: 18, color: Colors.blueAccent),
+                                ),
+                                subtitle: Text(
+                                  userFake.height ?? "null" + " m",
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                trailing: IconButton(
+                                    icon: Icon(Icons.edit),
+                                    onPressed: () {
+                                      showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                              title: Text("Chiều cao"),
+                                              content: TextField(
+                                                autofocus: true,
+                                                controller: _heightController,
+                                              ),
+                                              actions: <Widget>[
+                                                MaterialButton(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      userFake.height =
+                                                          _heightController
+                                                              .text;
+                                                    });
+                                                    Navigator.of(context)
+                                                        .pop(context);
+                                                  },
+                                                  child: Text(
+                                                    "Lưu",
+                                                    style: TextStyle(
+                                                        color: Colors.blue),
+                                                  ),
+                                                ),
+                                                MaterialButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context)
+                                                        .pop(context);
+                                                  },
+                                                  child: Text(
+                                                    "Thoát",
+                                                    style: TextStyle(
+                                                        color: Colors.blue),
+                                                  ),
+                                                )
+                                              ],
+                                            );
+                                          });
+                                    })),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
       ),
     );
   }

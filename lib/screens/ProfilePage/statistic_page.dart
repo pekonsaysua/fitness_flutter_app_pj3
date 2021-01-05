@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fitness_app/apis/api.dart';
 import 'package:fitness_app/helpers/colors_constant.dart';
 import 'package:fitness_app/helpers/parse_date_helpers.dart';
 import 'package:fitness_app/models/data_count.dart';
@@ -41,54 +42,10 @@ class _StatisticPageState extends State<StatisticPage> {
   }
 
   Future<void> init() async {
-    var doc = await Firestore.instance
-        .collection("posts")
-        .where("uid", isEqualTo: widget.userId)
-        .getDocuments();
-    List<DataCount> listAll = new List();
-    List<DataCount> listWeek = new List();
-
-    for (var i in doc.documents) {
-      Map<String, dynamic> json = i.data;
-      DataCount dataCount = DataCount.fromJson(json["activity"]);
-      listAll.add(dataCount);
-      if (ParseDate.getDay(dataCount.date) <= 7) listWeek.add(dataCount);
-    }
-    statsAll = getStats(listAll);
-    statsWeek = getStats(listWeek);
+    statsAll = await Api.getStatsApi(widget.userId);
+    statsWeek = await Api.getStatsApi(widget.userId, 7);
   }
 
-  Map<String, dynamic> getStats(List<DataCount> list) {
-    var distance = 0.0;
-    var calo = 0.0;
-    var step = 0;
-    var second = 0;
-    var minute = 0;
-    var hour = 0;
-    var time = "00:00";
-    for (var dataCount in list) {
-      distance = distance + double.parse(dataCount.distance);
-      calo = calo + double.parse(dataCount.calories);
-      step = step + int.parse(dataCount.step);
-      var a = dataCount.time.split(":");
-      second = second + int.parse(a.last);
-      minute = minute + int.parse(a.first);
-    }
-    if ((second - second % 60) != 0) minute = minute + 1;
-    if ((minute - minute % 60) != 0) hour = hour + 1;
-    second = second % 60;
-    time = (hour == 0 ? "" : hour.toString() + "h") +
-        (minute == 0 ? "" : minute.toString() + "m") +
-        second.toString() +
-        "s";
-    return {
-      "count": list.length.toString(),
-      "distance": distance.toString(),
-      "calo": calo.toString(),
-      "step": step.toString(),
-      "time": time
-    };
-  }
 
   @override
   Widget build(BuildContext context) {
