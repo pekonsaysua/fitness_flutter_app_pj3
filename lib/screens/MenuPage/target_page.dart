@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fitness_app/helpers/colors_constant.dart';
 import 'package:fitness_app/helpers/shared_preferrence.dart';
 import 'package:fitness_app/models/user.dart';
@@ -28,6 +31,13 @@ class _TargetPageState extends State<TargetPage> {
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    targetController.onClose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final TextEditingController _stepController = TextEditingController();
     final TextEditingController _distanceController = TextEditingController();
@@ -46,25 +56,22 @@ class _TargetPageState extends State<TargetPage> {
         backgroundColor: kColorOrange,
         title: Text("Menu"),
       ),
-      body: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        child: Stack(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 20, 10, 0),
-              child: Column(
-                children: <Widget>[
-                  //SizedBox(height: 10,),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    height: 440,
-                    width: MediaQuery.of(context).size.width,
-                    child: GetBuilder<TargetController>(
-                        builder: (targetController) {
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 20, 10, 0),
+          child: Column(
+            children: <Widget>[
+              //SizedBox(height: 10,),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                height: 400,
+                width: MediaQuery.of(context).size.width,
+                child: GetBuilder<TargetController>(
+                    dispose: (_) => targetController.onClose(),
+                    builder: (targetController) {
                       return Column(
                         children: <Widget>[
                           Padding(
@@ -276,7 +283,7 @@ class _TargetPageState extends State<TargetPage> {
                                       children: <Widget>[
                                         Text(
                                           targetController.distanceTarget
-                                                  .toString() +
+                                                  .toStringAsFixed(4) +
                                               " km",
                                           style: TextStyle(
                                               fontSize: 25,
@@ -391,7 +398,7 @@ class _TargetPageState extends State<TargetPage> {
                                         children: <Widget>[
                                           Text(
                                             targetController.caloriesTarget
-                                                .toString(),
+                                                .toStringAsFixed(4),
                                             style: TextStyle(
                                                 fontSize: 25,
                                                 color: Colors.green,
@@ -514,22 +521,235 @@ class _TargetPageState extends State<TargetPage> {
                         ],
                       );
                     }),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  FlatButton(
-                      color: kColorOrange.withOpacity(0.3),
-                      padding: EdgeInsets.all(0),
-                      onPressed: () {},
-                      child: ListTile(
-                        leading: Icon(Icons.close),
-                        title: Text("Thoát ứng dụng"),
-                      )),
-                ],
               ),
-            ),
-          ],
+              SizedBox(
+                height: 10,
+              ),
+              Container(
+                width: MediaQuery.of(context).size.width,
+                //height: MediaQuery.of(context).size.height,
+                decoration: BoxDecoration(
+                  border: Border(
+                      bottom:
+                          BorderSide(color: Theme.of(context).dividerColor)),
+                ),
+                child: ExpansionTile(
+                  leading:
+                      Icon(Icons.settings, size: 40.0, color: Colors.grey[700]),
+                  title: Text('Cài đặt & quyền riêng tư',
+                      style: TextStyle(fontSize: 17.0)),
+                  children: [
+                    Container(
+                      width: MediaQuery.of(context).size.width / 1.05,
+                      height: 70,
+                      child: Card(
+                        elevation: 30,
+                        child: FlatButton(
+                          onPressed: () {},
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              children: [
+                                Icon(Icons.account_circle),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Text("Cài đặt"),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: MediaQuery.of(context).size.width / 1.05,
+                      height: 70,
+                      child: Card(
+                        elevation: 30,
+                        child: FlatButton(
+                          onPressed: () {},
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              children: [
+                                Icon(Icons.lock),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Text("Lối tắt quyền riêng tư"),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: MediaQuery.of(context).size.width / 1.05,
+                      height: 70,
+                      child: Card(
+                        elevation: 30,
+                        child: FlatButton(
+                          onPressed: () {},
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              children: [
+                                Icon(Icons.language),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Text("Ngôn ngữ"),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: MediaQuery.of(context).size.width / 1.05,
+                      height: 70,
+                      child: Card(
+                        elevation: 30,
+                        child: FlatButton(
+                          onPressed: () {},
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              children: [
+                                Icon(Icons.monetization_on),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Text("Chế độ tối"),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                      bottom:
+                          BorderSide(color: Theme.of(context).dividerColor)),
+                ),
+                child: FlatButton(
+                  onPressed: () {
+                    Widget cancelButton = FlatButton(
+                      child: Text("Không"),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    );
+                    Widget continueButton = FlatButton(
+                      child: Text("Đồng ý"),
+                      onPressed: () async {
+                        FirebaseAuth.instance.signOut();
+                        StorageUtil.clear();
+                        Navigator.pushNamedAndRemoveUntil(
+                            context, 'intro_screen', (route) => false);
+                      },
+                    );
+                    // set up the AlertDialog
+                    AlertDialog alert = AlertDialog(
+                      content: Text("Bạn muốn đăng xuất?"),
+                      actions: [
+                        cancelButton,
+                        continueButton,
+                      ],
+                    );
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return alert;
+                      },
+                    );
+                  },
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: 65.0,
+                    padding: EdgeInsets.symmetric(horizontal: 5.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: <Widget>[
+                            Icon(Icons.exit_to_app,
+                                size: 40.0, color: Colors.grey[700]),
+                            SizedBox(width: 10.0),
+                            Text('Đăng xuất', style: TextStyle(fontSize: 17.0)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                      bottom:
+                          BorderSide(color: Theme.of(context).dividerColor)),
+                ),
+                child: FlatButton(
+                  onPressed: () {
+                    Widget cancelButton = FlatButton(
+                      child: Text("Không"),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    );
+                    Widget continueButton = FlatButton(
+                      child: Text("Đồng ý"),
+                      onPressed: () {
+                        exit(0);
+                      },
+                    );
+                    // set up the AlertDialog
+                    AlertDialog alert = AlertDialog(
+                      content: Text("Bạn có chắc chắn muốn thoát?"),
+                      actions: [
+                        cancelButton,
+                        continueButton,
+                      ],
+                    );
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return alert;
+                      },
+                    );
+                  },
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: 65.0,
+                    padding: EdgeInsets.symmetric(horizontal: 5.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: <Widget>[
+                            Icon(Icons.clear,
+                                size: 40.0, color: Colors.grey[700]),
+                            SizedBox(width: 10.0),
+                            Text('Thoát ứng dụng',
+                                style: TextStyle(fontSize: 17.0)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

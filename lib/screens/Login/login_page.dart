@@ -26,6 +26,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final user = Provider.of<UserProvider>(context);
     final home = Provider.of<HomeProvider>(context);
+
     return Scaffold(
       key: _key,
       body: user.status == Status.Authenticating
@@ -148,8 +149,10 @@ class _LoginPageState extends State<LoginPage> {
                               height: 52,
                               child: RaisedButton(
                                 onPressed: () async {
-                                  if (!await user.signIn(_emailController.text,
-                                      _passController.text))
+                                  bool dangNhap = await user.signIn(
+                                      _emailController.text,
+                                      _passController.text);
+                                  if (!dangNhap)
                                     _key.currentState.showSnackBar(SnackBar(
                                         content: Text(
                                             "Đăng nhập không thành công")));
@@ -180,9 +183,11 @@ class _LoginPageState extends State<LoginPage> {
                               child: RaisedButton(
                                 onPressed: () async {
                                   bool res = await user.loginWithGoogle();
-                                  if (!res)
+                                  if (!res) {
                                     print("error logging in with google");
-                                  else {
+                                    user.status = Status.Unauthenticated;
+                                    Navigator.pop(context);
+                                  } else {
                                     Navigator.pushNamed(context, 'main_screen');
                                   }
                                 },

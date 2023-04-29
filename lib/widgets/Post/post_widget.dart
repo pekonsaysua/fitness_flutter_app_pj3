@@ -83,10 +83,10 @@ class _PostWidgetState extends State<PostWidget> {
                       ),
                       //SizedBox(height: 0.0),
                       ParseDate.getDay(widget.post.act.date) == 0
-                          ? Text("Hom nay")
+                          ? Text("Hôm nay")
                           : Text(ParseDate.getDay(widget.post.act.date)
                                   .toString() +
-                              " ngay truoc"),
+                              " ngày trước"),
                     ],
                   ),
                 ),

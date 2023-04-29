@@ -63,7 +63,7 @@ class _FollowPageState extends State<FollowPage> with TickerProviderStateMixin {
 }
 
 class FollowerAndFollowingList extends StatefulWidget {
-  final bool isFollowingList;
+  bool isFollowingList;
   List<String> userIdList;
 
   FollowerAndFollowingList(this.isFollowingList, this.userIdList);
@@ -77,6 +77,8 @@ class _FollowerAndFollowingListState extends State<FollowerAndFollowingList>
     with AutomaticKeepAliveClientMixin {
   bool isLoading = false;
   List list = new List();
+
+  String myId;
 
   @override
   void initState() {
@@ -97,6 +99,7 @@ class _FollowerAndFollowingListState extends State<FollowerAndFollowingList>
   }
 
   Future<void> init() async {
+    myId = await StorageUtil.getUid();
     for (var userId in widget.userIdList) {
       UserData user = await Api.getUserApi(userId);
       list.add(user);
@@ -132,7 +135,6 @@ class _FollowerAndFollowingListState extends State<FollowerAndFollowingList>
                               : NetworkImage(user.urlAvt),
                         ),
                         onTap: () async {
-                          UserData myProfile = await StorageUtil.getUserInfo();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -159,24 +161,57 @@ class _FollowerAndFollowingListState extends State<FollowerAndFollowingList>
                                       return SizedBox(
                                         height:
                                             MediaQuery.of(context).size.height *
-                                                0.2,
+                                                0.15,
                                         child: Container(
                                           child: Column(
                                             children: [
                                               Container(
-                                                child: Text("Hành động"),
+                                                alignment: Alignment.center,
+                                                width: MediaQuery.of(context)
+                                                    .size
+                                                    .width,
+                                                height: MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                    0.07,
+                                                decoration: BoxDecoration(
+                                                  border: Border(
+                                                      bottom: BorderSide(
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .dividerColor)),
+                                                ),
+                                                child: Text(
+                                                  "Hành động",
+                                                  style: TextStyle(
+                                                      fontSize: 20,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
                                               ),
                                               Container(
                                                 width: MediaQuery.of(context)
                                                     .size
                                                     .width,
                                                 child: FlatButton(
-                                                  onPressed: () {},
-                                                  child: Text(
-                                                    "Hủy theo dõi",
-                                                    style: TextStyle(
-                                                        fontSize: 18,
-                                                        color: kColorOrange),
+                                                  onPressed: () {
+                                                    Api.setUnFollow(
+                                                        myId, user.id);
+                                                    Navigator.pop(context);
+                                                    setState(() {
+                                                      widget.isFollowingList =
+                                                          false;
+                                                    });
+                                                  },
+                                                  child: Container(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: Text(
+                                                      "Hủy theo dõi",
+                                                      style: TextStyle(
+                                                          fontSize: 18,
+                                                          color: kColorOrange),
+                                                    ),
                                                   ),
                                                 ),
                                               ),
@@ -193,8 +228,16 @@ class _FollowerAndFollowingListState extends State<FollowerAndFollowingList>
                                   borderRadius: BorderRadius.circular(5)),
                             )
                           : FlatButton(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal:
+                                      MediaQuery.of(context).size.width * 0.08),
                               textColor: kColorWhite,
-                              onPressed: () async {},
+                              onPressed: () async {
+                                Api.setFollow(myId, user.id);
+                                setState(() {
+                                  widget.isFollowingList = true;
+                                });
+                              },
                               child: Text("Theo dõi"),
                               color: kColorOrange,
                               shape: RoundedRectangleBorder(

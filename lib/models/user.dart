@@ -20,8 +20,15 @@ class UserData {
   String urlAvt;
   String urlCover;
 
-  UserData(this.id, this.name, this.email, this.phone, this.pass, this.weight,
-      this.height, this.urlAvt, this.urlCover);
+  UserData(this.id,
+      this.name,
+      this.email,
+      this.phone,
+      this.pass,
+      this.weight,
+      this.height,
+      this.urlAvt,
+      this.urlCover);
 
   UserData.compact(this.id, this.name, this.urlAvt);
 

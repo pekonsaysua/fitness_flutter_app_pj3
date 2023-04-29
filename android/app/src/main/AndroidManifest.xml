@@ -11,8 +11,8 @@
 
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:icon="@mipmap/ic_launcher"
-        android:label="fitness_app">
+        android:icon="@mipmap/launcher_icon"
+        android:label="Run Tracking">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAIP63BEbdUNe-WhQXXFS9Q7cQrDPoGvwE" />

@@ -30,9 +30,9 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     if (index == 2) {
       await Navigator.pushNamed(context, "home_screen")
           .then((value) => setState(() {
-        _selectedIndex = 0;
-        _pageController.jumpToPage(0);
-      }));
+                _selectedIndex = 0;
+                _pageController.jumpToPage(0);
+              }));
     } else
       _pageController.jumpToPage(index);
   }
@@ -62,7 +62,13 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         body: PageView(
           controller: _pageController,
           onPageChanged: _onPageChanged,
-          children: [FeedPage(), ExplorePage(), Scaffold(), ProfilePage(), TargetPage()],
+          children: [
+            FeedPage(),
+            ExplorePage(),
+            Scaffold(),
+            ProfilePage(),
+            TargetPage()
+          ],
         ),
         bottomNavigationBar: BottomNavigationBar(
           backgroundColor: kColorWhite,
@@ -87,16 +93,13 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             BottomNavigationBarItem(
                 label: "Cá nhân", icon: Icon(Icons.person_outline, size: 30.0)),
             BottomNavigationBarItem(
-                label: "Mục tiêu",
-                icon: Icon(Icons.event_note_outlined, size: 30.0))
+                label: "Menu", icon: Icon(Icons.menu, size: 30.0))
           ],
         ),
       ),
     );
   }
 }
-
-
 
 /*
 class CustomAppBar extends PreferredSize {

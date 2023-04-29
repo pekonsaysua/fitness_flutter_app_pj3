@@ -190,6 +190,36 @@ class Api {
     return list;
   }
 
+  static Future<bool> checkFollowing(String myId, String yourId) async {
+    var check = await Firestore.instance
+        .collection('friends')
+        .where("followerId", isEqualTo: myId)
+        .where("followingId", isEqualTo: yourId)
+        .getDocuments();
+
+    return check.documents.isNotEmpty;
+  }
+
+  static Future<void> setFollow(String myId, String yourId) async {
+    Firestore.instance.collection('friends').add({
+      'followerId': myId,
+      'followingId': yourId,
+    });
+  }
+
+  static Future<void> setUnFollow(String myId, String yourId) async {
+    var find = await Firestore.instance
+        .collection('friends')
+        .where("followerId", isEqualTo: myId)
+        .where("followingId", isEqualTo: yourId)
+        .getDocuments();
+    if (find.documents.isNotEmpty)
+      Firestore.instance
+          .collection('friends')
+          .document(find.documents.first.documentID)
+          .delete();
+  }
+
   static Future<List<ChallengeModel>> getListChallengeApi(String userId,
       [bool isJoin]) async {
     List<ChallengeModel> list = new List();

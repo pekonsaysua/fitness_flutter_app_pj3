@@ -31,6 +31,8 @@ class _DiscussionPageState extends State<DiscussionPage> {
 
   String myId = "";
 
+  bool isSending = false;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -73,6 +75,16 @@ class _DiscussionPageState extends State<DiscussionPage> {
       appBar: AppBar(
         backgroundColor: kColorOrange,
         title: Text("Thảo luận"),
+        actions: [
+          if (isSending)
+            Container(
+                height: 15,
+                width: 15,
+                child: SizedBox(
+                    width: 15,
+                    height: 15,
+                    child: Center(child: CircularProgressIndicator()))),
+        ],
       ),
       body: isLoading
           ? Container(
@@ -95,8 +107,8 @@ class _DiscussionPageState extends State<DiscussionPage> {
                         Container(
                           decoration: BoxDecoration(
                             border: Border(
-                                bottom:
-                                    BorderSide(color: kColorGrey, width: 0.7)),
+                                bottom: BorderSide(
+                                    color: Theme.of(context).dividerColor)),
                           ),
                           height: 70,
                           child: Row(
@@ -144,26 +156,40 @@ class _DiscussionPageState extends State<DiscussionPage> {
                                 ),
                               ),
                               Expanded(
-                                child: ListView.separated(
-                                  physics: ScrollPhysics(),
-                                  separatorBuilder: (context, index) =>
-                                      SizedBox(
-                                    width: 20,
-                                  ),
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: likeList.length,
-                                  itemBuilder: (context, index) {
-                                    var avatar = likeList[index].urlAvt;
-                                    return CircleAvatar(
-                                      backgroundColor: kColorGrey,
-                                      radius: 15.0,
-                                      backgroundImage: avatar == null
-                                          ? AssetImage(
-                                              'assets/images/avatar.jpg')
-                                          : NetworkImage(avatar),
-                                    );
-                                  },
-                                ),
+                                child: StreamBuilder(
+                                    initialData: likeList,
+                                    stream: Api.getListLikesApi(widget.post.id)
+                                        .asStream(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData)
+                                        return ListView.separated(
+                                          physics: ScrollPhysics(),
+                                          separatorBuilder: (context, index) =>
+                                              SizedBox(
+                                            width: 20,
+                                          ),
+                                          scrollDirection: Axis.horizontal,
+                                          itemCount: likeList.length,
+                                          itemBuilder: (context, index) {
+                                            var avatar = likeList[index].urlAvt;
+                                            return CircleAvatar(
+                                              backgroundColor: kColorGrey,
+                                              radius: 15.0,
+                                              backgroundImage: avatar == null
+                                                  ? AssetImage(
+                                                      'assets/images/avatar.jpg')
+                                                  : NetworkImage(avatar),
+                                            );
+                                          },
+                                        );
+                                      else
+                                        return Container(
+                                          child: Center(
+                                            child: Text(
+                                                "Có lỗi xảy ra, vui lòng thử lại "),
+                                          ),
+                                        );
+                                    }),
                               ),
                               Container(
                                 width: MediaQuery.of(context).size.width * 0.15,
@@ -174,89 +200,160 @@ class _DiscussionPageState extends State<DiscussionPage> {
                             ],
                           ),
                         ),
-                        ListView.builder(
-                            physics: ScrollPhysics(),
-                            shrinkWrap: true,
-                            itemCount: commentList.length,
-                            itemBuilder: (context, index) {
-                              CommentModel com = commentList[index];
-                              return Container(
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                      bottom: BorderSide(
-                                          color: kColorGrey, width: 0.7)),
-                                ),
-                                child: ListTile(
-                                  leading: GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => ProfilePage(
-                                            userId: com.poster.id,
+                        StreamBuilder(
+                            initialData: commentList,
+                            stream: Api.getListCommentsApi(widget.post.id)
+                                .asStream(),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
+                                commentList = snapshot.data;
+                                return ListView.builder(
+                                    physics: ScrollPhysics(),
+                                    shrinkWrap: true,
+                                    itemCount: commentList.length,
+                                    itemBuilder: (context, index) {
+                                      CommentModel com = commentList[index];
+                                      return Container(
+                                        decoration: BoxDecoration(
+                                          border: Border(
+                                              bottom: BorderSide(
+                                            color:
+                                                Theme.of(context).dividerColor,
+                                          )),
+                                        ),
+                                        child: ListTile(
+                                          leading: GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ProfilePage(
+                                                    userId: com.poster.id,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            child: CircleAvatar(
+                                              backgroundColor: kColorGrey,
+                                              radius: 25.0,
+                                              backgroundImage: com
+                                                          .poster.urlAvt ==
+                                                      null
+                                                  ? AssetImage(
+                                                      'assets/images/avatar.jpg')
+                                                  : NetworkImage(
+                                                      com.poster.urlAvt),
+                                            ),
+                                          ),
+                                          title: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                com.poster.name,
+                                                style: TextStyle(
+                                                    color: Colors.grey[400],
+                                                    fontSize: 14,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              ParseDate.getDay(com.created) == 0
+                                                  ? ParseDate.getHour(
+                                                              com.created) ==
+                                                          0
+                                                      ? ParseDate.getMinute(com
+                                                                  .created) ==
+                                                              0
+                                                          ? Text(
+                                                              "vừa xong",
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      400],
+                                                                  fontSize: 14,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
+                                                            )
+                                                          : Text(
+                                                              ParseDate.getMinute(
+                                                                          com.created)
+                                                                      .toString() +
+                                                                  " phút trước",
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      400],
+                                                                  fontSize: 14,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
+                                                            )
+                                                      : Text(
+                                                          ParseDate.getHour(com
+                                                                      .created)
+                                                                  .toString() +
+                                                              " giờ trước",
+                                                          style: TextStyle(
+                                                              color: Colors
+                                                                  .grey[400],
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        )
+                                                  : Text(
+                                                      ParseDate.getDay(
+                                                                  com.created)
+                                                              .toString() +
+                                                          " ngày trước",
+                                                      style: TextStyle(
+                                                          color:
+                                                              Colors.grey[400],
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                            ],
+                                          ),
+                                          subtitle: Text(
+                                            com.comment,
+                                            style: TextStyle(
+                                                color: kColorBlack,
+                                                fontSize: 16),
+                                          ),
+                                          trailing: PopupMenuButton(
+                                            onSelected: (myChoose) {
+                                              print(myChoose);
+                                              setState(() {
+                                                commentList.removeAt(index);
+                                              });
+                                            },
+                                            offset: Offset(500, 1000),
+                                            itemBuilder: (_) =>
+                                                <PopupMenuItem<String>>[
+                                              myId == com.poster.id
+                                                  ? PopupMenuItem<String>(
+                                                      child: new Text(
+                                                          'Xóa bình luận'),
+                                                      value: 'delete',
+                                                    )
+                                                  : PopupMenuItem<String>(
+                                                      child: new Text(
+                                                          'Ẩn bình luận'),
+                                                      value: 'hide',
+                                                    ),
+                                            ],
                                           ),
                                         ),
                                       );
-                                    },
-                                    child: CircleAvatar(
-                                      backgroundColor: kColorGrey,
-                                      radius: 25.0,
-                                      backgroundImage: com.poster.urlAvt == null
-                                          ? AssetImage(
-                                              'assets/images/avatar.jpg')
-                                          : NetworkImage(com.poster.urlAvt),
-                                    ),
-                                  ),
-                                  title: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        com.poster.name,
-                                        style: TextStyle(
-                                            color: Colors.grey[400],
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      ParseDate.getDay(com.created) == 0
-                                          ? ParseDate.getHour(com.created) == 0
-                                              ? Text("Vua xong")
-                                              : Text(
-                                                  ParseDate.getHour(com.created)
-                                                          .toString() +
-                                                      " gio truoc")
-                                          : Text(ParseDate.getDay(com.created)
-                                                  .toString() +
-                                              " ngay truoc"),
-                                    ],
-                                  ),
-                                  subtitle: Text(
-                                    com.comment,
-                                    style: TextStyle(
-                                        color: kColorBlack, fontSize: 16),
-                                  ),
-                                  trailing: PopupMenuButton(
-                                    onSelected: (myChoose) {
-                                      print(myChoose);
-                                      setState(() {
-                                        commentList.removeAt(index);
-                                      });
-                                    },
-                                    offset: Offset(500, 1000),
-                                    itemBuilder: (_) => <PopupMenuItem<String>>[
-                                      myId == com.poster.id
-                                          ? PopupMenuItem<String>(
-                                              child: new Text('Xóa bình luận'),
-                                              value: 'delete',
-                                            )
-                                          : PopupMenuItem<String>(
-                                              child: new Text('Ẩn bình luận'),
-                                              value: 'hide',
-                                            ),
-                                    ],
-                                  ),
-                                ),
-                              );
+                                    });
+                              } else
+                                return Container(
+                                    child: Center(
+                                        child: Text(
+                                            "Có lỗi xảy ra, vui lòng thử lại")));
                             })
                       ],
                     ),
@@ -276,6 +373,9 @@ class _DiscussionPageState extends State<DiscussionPage> {
                           hintText: "Viết thứ gì đó",
                           suffixIcon: GestureDetector(
                             onTap: () async {
+                              setState(() {
+                                isSending = true;
+                              });
                               var text = textEditingController.text;
                               textEditingController.text = "";
                               dismissKeyboard();
@@ -301,6 +401,9 @@ class _DiscussionPageState extends State<DiscussionPage> {
                                   .then((value) => setState(() {
                                         commentList = value;
                                       }));
+                              setState(() {
+                                isSending = false;
+                              });
                             },
                             child: Icon(Icons.send),
                           )),

@@ -1,3 +1,4 @@
+import 'package:fitness_app/screens/FeedPage/find_friend.dart';
 import 'package:fitness_app/screens/HomePage/home_page.dart';
 import 'package:fitness_app/screens/ProfilePage/edit_profile_page.dart';
 import 'package:fitness_app/screens/ProfilePage/setting_page.dart';
@@ -24,6 +25,7 @@ var routes = {
   //'home_screen2': (context) => HomeScreen(),
 
   'home_screen': (context) => HomePage(),
+  'find_friend': (context) => FindFriend(),
   //CREATE POST
   'main_screen': (context) => MainPage(),
   // PROFILE

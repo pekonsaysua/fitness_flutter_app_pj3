@@ -308,7 +308,7 @@ class _RunControlState extends State<RunControl> {
                                                     json["track"].toString());
                                                 Navigator.pop(context);
                                               },
-                                              child: Text("huy")),
+                                              child: Text("HỦY")),
                                           FlatButton(
                                               onPressed: () {
                                                 user.setDataCount(
@@ -323,7 +323,7 @@ class _RunControlState extends State<RunControl> {
                                                         .text);
                                                 Navigator.pop(context);
                                               },
-                                              child: Text("luu"))
+                                              child: Text("LƯU"))
                                         ],
                                       );
                                     });

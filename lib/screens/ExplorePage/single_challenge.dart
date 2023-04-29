@@ -84,7 +84,14 @@ class _SingleChallengeState extends State<SingleChallenge> {
                   alignment: Alignment.center,
                   child: Column(
                     children: [
-                      Text(challenge.name),
+                      Container(
+                        child: Text(
+                          challenge.name,
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 20),
+                        ),
+                        margin: EdgeInsets.symmetric(vertical: 50),
+                      ),
                       Container(
                         width: MediaQuery.of(context).size.width * 0.9,
                         child: challenge.isJoin
@@ -123,19 +130,26 @@ class _SingleChallengeState extends State<SingleChallenge> {
                               challenge.end.split(" ").first)),
                       ListTile(
                         leading: Icon(Icons.directions_run_outlined),
-                        title: RichText(
-                          text: TextSpan(
-                            text: "Hoàn thành",
+                        title: Container(
+                          alignment: Alignment.centerLeft,
+                          child: Column(
                             children: [
                               if (challenge.target.step != null)
-                                TextSpan(text: challenge.target.step + " bước"),
+                                Text("Hoành thành " +
+                                    challenge.target.step +
+                                    " bước"),
                               if (challenge.target.distance != null)
-                                TextSpan(
-                                    text: challenge.target.distance + " km"),
+                                Text("Hoành thành " +
+                                    challenge.target.distance +
+                                    " km"),
                               if (challenge.target.calo != null)
-                                TextSpan(text: challenge.target.calo + " calo"),
+                                Text("Hoành thành " +
+                                    challenge.target.calo +
+                                    " calo"),
                               if (challenge.target.time != null)
-                                TextSpan(text: challenge.target.time),
+                                Text("Hoành thành " +
+                                    challenge.target.time +
+                                    "phút"),
                             ],
                           ),
                         ),

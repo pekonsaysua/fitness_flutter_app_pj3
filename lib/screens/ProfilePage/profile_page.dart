@@ -8,6 +8,7 @@ import 'package:fitness_app/helpers/shared_preferrence.dart';
 import 'package:fitness_app/models/challenge.dart';
 import 'package:fitness_app/models/user.dart';
 import 'package:fitness_app/screens/ExplorePage/challenges_page.dart';
+import 'package:fitness_app/screens/ExplorePage/single_challenge.dart';
 import 'package:fitness_app/screens/ProfilePage/follow_page.dart';
 import 'package:fitness_app/screens/ProfilePage/profile_controller.dart';
 import 'package:fitness_app/screens/ProfilePage/statistic_page.dart';
@@ -101,9 +102,7 @@ class _ProfilePageState extends State<ProfilePage>
                     ),
           IconButton(
             icon: Icon(Icons.settings),
-            onPressed: () {
-              Navigator.pushNamed(context, "setting_screen");
-            },
+            onPressed: () {},
             tooltip: "Settings",
           ),
           IconButton(
@@ -230,7 +229,10 @@ class _ProfilePageState extends State<ProfilePage>
                               user.id == myProfile.id
                                   ? FlatButton(
                                       textColor: kColorOrange,
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        Navigator.pushNamed(
+                                            context, "find_friend");
+                                      },
                                       child: Text("Tìm bạn bè"),
                                       shape: RoundedRectangleBorder(
                                           side: BorderSide(
@@ -260,8 +262,76 @@ class _ProfilePageState extends State<ProfilePage>
                                                         MediaQuery.of(context)
                                                                 .size
                                                                 .height *
-                                                            0.5,
-                                                    child: Container(),
+                                                            0.15,
+                                                    child: Container(
+                                                      child: Column(
+                                                        children: [
+                                                          Container(
+                                                            alignment: Alignment
+                                                                .center,
+                                                            width:
+                                                                MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .width,
+                                                            height: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .height *
+                                                                0.07,
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              border: Border(
+                                                                  bottom: BorderSide(
+                                                                      color: Theme.of(
+                                                                              context)
+                                                                          .dividerColor)),
+                                                            ),
+                                                            child: Text(
+                                                              "Hành động",
+                                                              style: TextStyle(
+                                                                  fontSize: 20,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
+                                                            ),
+                                                          ),
+                                                          Container(
+                                                            width:
+                                                                MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .width,
+                                                            child: FlatButton(
+                                                              onPressed: () {
+                                                                Api.setUnFollow(
+                                                                    myProfile
+                                                                        .id,
+                                                                    user.id);
+                                                                Navigator.pop(
+                                                                    context);
+                                                                setState(() {
+                                                                  isFollow =
+                                                                      false;
+                                                                });
+                                                              },
+                                                              child: Container(
+                                                                alignment: Alignment
+                                                                    .centerLeft,
+                                                                child: Text(
+                                                                  "Hủy theo dõi",
+                                                                  style: TextStyle(
+                                                                      fontSize:
+                                                                          18,
+                                                                      color:
+                                                                          kColorOrange),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
                                                   );
                                                 });
                                           },
@@ -391,7 +461,13 @@ class _ProfilePageState extends State<ProfilePage>
                                     var chal = challengeList[index];
                                     return FlatButton(
                                       padding: EdgeInsets.all(0),
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    SingleChallenge(chal.id)));
+                                      },
                                       child: Card(
                                         shape: RoundedRectangleBorder(
                                             borderRadius:
@@ -478,71 +554,18 @@ class _ProfilePageState extends State<ProfilePage>
                                 style: TextStyle(
                                     fontSize: 18, fontWeight: FontWeight.bold),
                               ),
-                              Text("5"),
+                              Text("0"),
                             ],
                           ),
                         ),
                         Container(
-                          height: 100.0,
+                          height: 0.0,
                           padding: EdgeInsets.only(bottom: 20, left: 15),
                           child: ListView(
                             shrinkWrap: true,
                             physics: NeverScrollableScrollPhysics(),
                             scrollDirection: Axis.horizontal,
-                            children: [
-                              FlatButton(
-                                padding: EdgeInsets.all(0),
-                                onPressed: () {},
-                                child: Card(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10)),
-                                  elevation: 1,
-                                  child: Container(
-                                    height: 100,
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.9,
-                                    child: ListTile(
-                                      leading: Icon(Icons.padding),
-                                      title: Text("Thu thach chay thang 12"),
-                                      subtitle: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text("50km"),
-                                          Text("Con 1 ngay"),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              FlatButton(
-                                padding: EdgeInsets.all(0),
-                                onPressed: () {},
-                                child: Card(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10)),
-                                  elevation: 1,
-                                  child: Container(
-                                    height: 100,
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.9,
-                                    child: ListTile(
-                                      leading: Icon(Icons.padding),
-                                      title: Text("Thu thach chay thang 12"),
-                                      subtitle: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text("50km"),
-                                          Text("Con 1 ngay"),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                            children: [],
                           ),
                         ),
                         FlatButton(

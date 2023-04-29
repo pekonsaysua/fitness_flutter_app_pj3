@@ -172,7 +172,7 @@ class _EditProfileState extends State<EditProfile> {
         key: _key,
         appBar: AppBar(
           backgroundColor: kColorOrange,
-          title: Text("Sửa thông tin cá nhân"),
+          title: Text("Sửa thông tin"),
           leading: IconButton(
               icon: Icon(Icons.arrow_back),
               onPressed: () {

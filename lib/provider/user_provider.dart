@@ -21,6 +21,10 @@ class UserProvider with ChangeNotifier {
 
   Status _status = Status.Uninitialized;
 
+  set status(Status value) {
+    _status = value;
+  }
+
   Status get status => _status;
 
   bool get isMailExist => _isMailExist;
@@ -63,13 +67,12 @@ class UserProvider with ChangeNotifier {
                     doc['email'],
                     doc['phone'],
                     doc['pass'],
-                    doc['height'],
                     doc['weight'],
+                    doc['height'],
                     doc['url_avt'],
                     doc['url_cover'],
                   );
                   StorageUtil.setUid(uid);
-                  StorageUtil.setFullName(doc['name']);
                   StorageUtil.setIsLogging(true);
                   StorageUtil.setUserInfo(user);
                   StorageUtil.setPassword(password);

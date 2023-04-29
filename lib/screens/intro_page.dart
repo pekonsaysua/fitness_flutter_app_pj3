@@ -81,7 +81,7 @@ class _IntroPageState extends State<IntroPage> {
                   padding: const EdgeInsets.fromLTRB(0, 5, 0, 20),
                   child: Center(
                       child: Text(
-                        "Phầm mềm hỗ trợ chạy bộ",
+                        "Phầm mềm theo dõi chạy bộ",
                         style: TextStyle(
                             fontSize: 18,
                             color: Colors.white,

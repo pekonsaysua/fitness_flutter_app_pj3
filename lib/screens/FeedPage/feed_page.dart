@@ -60,6 +60,7 @@ class _FeedPageState extends State<FeedPage>
               color: kColorWhite,
               tooltip: 'Find Friends',
               onPressed: () async {
+                Navigator.pushNamed(context, "find_friend");
 
                 /*
 
@@ -89,7 +90,10 @@ class _FeedPageState extends State<FeedPage>
               icon: const Icon(Icons.notifications_none),
               color: kColorWhite,
               tooltip: 'Notifications',
-              onPressed: () {},
+              onPressed: () async {
+                UserData string = await StorageUtil.getUserInfo();
+                print(string.toJson());
+              },
             ),
             SizedBox(
               width: 15,

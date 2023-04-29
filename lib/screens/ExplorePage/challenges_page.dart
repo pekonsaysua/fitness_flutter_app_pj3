@@ -123,13 +123,13 @@ class _ChallengesPageState extends State<ChallengesPage>
                                         CrossAxisAlignment.start,
                                     children: [
                                       if (chal.target.step != null)
-                                        Text(chal.target.step),
+                                        Text(chal.target.step+" bước"),
                                       if (chal.target.distance != null)
-                                        Text(chal.target.distance),
+                                        Text(chal.target.distance+ " km"),
                                       if (chal.target.calo != null)
-                                        Text(chal.target.calo),
+                                        Text(chal.target.calo+ " calo"),
                                       if (chal.target.time != null)
-                                        Text(chal.target.time),
+                                        Text(chal.target.time+" phút"),
                                       Text(chal.begin.split(" ").first +
                                           " to " +
                                           chal.end.split(" ").first)
